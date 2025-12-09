@@ -1,0 +1,46 @@
+{
+  "name": "poly-dapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "dev": "nodemon -e ts,json --ignore dist/ --exec \"npx tsc && node dist/server.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "prisma": "^7.1.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.31.0",
+    "@polymarket/clob-client": "^4.22.8",
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0",
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.1",
+    "bullmq": "^5.65.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "ethers": "^5.8.0",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.11",
+    "openai": "^6.10.0",
+    "p-queue": "^9.0.1",
+    "permissionless": "^0.3.2",
+    "pg": "^8.16.3",
+    "pino": "^10.1.0",
+    "redis": "^5.10.0",
+    "ts-node": "^10.9.2",
+    "viem": "^2.41.2"
+  }
+}

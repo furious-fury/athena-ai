@@ -1,0 +1,15 @@
+(node:23636) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+--- Debugging Market IDs ---
+Fetching top 3 markets...
+
+[Sample Market from Tool]
+Tool ID (m.id): 0x8d9540f4caef531e7065998ff291ba9038588cfe647d8f4822f892112df86f00
+Question: Fed decreases interest rates by 50+ bps after December 2025 meeting?
+Token IDs: ["74018646712472971445258547247048869505144598783748525202442089895996249694683", "21489772516410038586556744342392982044189999368638682594741395650226594484811"]
+
+[Testing Gamma Lookup]
+URL: https://gamma-api.polymarket.com/markets/0x8d9540f4caef531e7065998ff291ba9038588cfe647d8f4822f892112df86f00
+FAILED: 422 Unprocessable Entity
+Body: {"type":"validation error","error":"id is invalid"}
+

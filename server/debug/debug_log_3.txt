@@ -1,0 +1,18 @@
+(node:24120) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+--- Starting Specific User EOA Debug ---
+User found: cmixw8l8j0000fgiyknopjqfe
+SCW Address: 0x04E0D20cd33D3CBaf5870b26870158E24778ee0c
+Key Length: 66
+EOA Address (Restored): 0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0
+
+--- TEST A: Stored Wallet + REAL PROXY (Type 2) ---
+Using Funder Address (User Provided): 0x917EAEE23635ABD65E04F6Fc97Fa0adbFC14ca7B
+Calling deriveApiKey...
+[CLOB Client] request error {"status":400,"statusText":"Bad Request","data":{"error":"Could not derive api key!"},"config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{},"headers":{"Accept":"*/*","POLY_ADDRESS":"0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0","POLY_SIGNATURE":"0xbe5350fa7447efffff21c2fa7674daddf8e5f21a2effa478529ed5fcebb7205f3d5f5de662f3dc9fba00a608b8a9353959927c5fb315748597515f264ac905b51b","POLY_TIMESTAMP":"1765264729","POLY_NONCE":"0","User-Agent":"@polymarket/clob-client","Connection":"keep-alive","Content-Type":"application/json","Accept-Encoding":"gzip"},"method":"get","url":"https://clob.polymarket.com/auth/derive-api-key","params":{}}}
+SUCCESS! Derived Keys: { key: undefined, secret: undefined, passphrase: undefined }
+
+--- TEST B: Random Wallet (Control) ---
+Random Address: 0xF777b5a9bEfd9B8e4B09EfCf7F56482D2238Fba9
+[CLOB Client] request error {"status":400,"statusText":"Bad Request","data":{"error":"Could not derive api key!"},"config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{},"headers":{"Accept":"*/*","POLY_ADDRESS":"0xF777b5a9bEfd9B8e4B09EfCf7F56482D2238Fba9","POLY_SIGNATURE":"0x67c5cc0f94e04246bb18447cf7bfbb9f11d8a8c6ffe242373c09db66d87d1e751d679b7841ace71475425cdc83ee1625fdfca96037eb4b48f7767ac91dd2a95e1b","POLY_TIMESTAMP":"1765264730","POLY_NONCE":"0","User-Agent":"@polymarket/clob-client","Connection":"keep-alive","Content-Type":"application/json","Accept-Encoding":"gzip"},"method":"get","url":"https://clob.polymarket.com/auth/derive-api-key","params":{}}}
+SUCCESS! Derived Keys (Random): { key: undefined, secret: undefined, passphrase: undefined }

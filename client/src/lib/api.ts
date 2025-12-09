@@ -1,0 +1,261 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+const API_URL = "http://localhost:5000/api";
+
+// Agents API
+export const useAgents = () => {
+    return useQuery({
+        queryKey: ["agents"],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/agents`);
+            const data = await res.json();
+            return data.agents; // Extract agents array from response
+        },
+    });
+};
+
+export const useControlAgent = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ agentId, action, userId }: { agentId: string, action: string, userId: string }) => {
+            const res = await fetch(`${API_URL}/agents/${agentId}/${action}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId }),
+            });
+            if (!res.ok) throw new Error(`Failed to ${action} agent`);
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["agents"] });
+        },
+    });
+};
+
+export const useCreateAgent = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ name, description, riskProfile, userId }: { name: string, description: string, riskProfile: string, userId: string }) => {
+            const res = await fetch(`${API_URL}/agents`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description, riskProfile, userId }),
+            });
+            if (!res.ok) throw new Error("Failed to create agent");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["agents"] });
+        },
+    });
+}
+
+export const useDeleteAgent = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (agentId: string) => {
+            const res = await fetch(`${API_URL}/agents/${agentId}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) throw new Error("Failed to delete agent");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["agents"] });
+        },
+    });
+};
+
+export const useEnableTrading = () => {
+    return useMutation({
+        mutationFn: async (credentials: { userId: string; apiKey: string; apiSecret: string; apiPassphrase: string; proxyWallet: string }) => {
+            const res = await fetch(`${API_URL}/agents/auth/polymarket`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(credentials),
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Failed to enable trading");
+            }
+            return res.json();
+        },
+    });
+};
+
+// Trades API
+export const useTrades = (userId: string) => {
+    return useQuery({
+        queryKey: ["trades", userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/trade/history/${userId}`);
+            const data = await res.json();
+            return data.trades; // Extract trades array from response
+        },
+        enabled: !!userId,
+    });
+};
+
+// User Settings API
+export const useUserSettings = (userId: string) => {
+    return useQuery({
+        queryKey: ['userSettings', userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/user/settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId }),
+            });
+            if (!res.ok) throw new Error('Failed to fetch user settings');
+            return res.json();
+        },
+        enabled: !!userId,
+    });
+};
+
+// Logs API
+export const useAgentLogs = (agentId: string) => {
+    return useQuery({
+        queryKey: ["agentLogs", agentId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/logs/agent/${agentId}`);
+            const data = await res.json();
+            return data.logs;
+        },
+        enabled: !!agentId,
+        refetchInterval: 5000, // Auto-refresh every 5s
+    });
+};
+
+export const useUserLogs = (userId: string) => {
+    return useQuery({
+        queryKey: ["userLogs", userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/logs/user/${userId}`);
+            const data = await res.json();
+            return data.logs;
+        },
+        enabled: !!userId,
+        refetchInterval: 5000,
+    });
+};
+
+export const useUpdateSettings = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: {
+            userId: string;
+            maxTradeAmount?: number;
+            maxMarketExposure?: number;
+            maxTotalExposure?: number;
+            tradeCooldownSeconds?: number;
+        }) => {
+            const res = await fetch(`${API_URL}/user/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            if (!res.ok) throw new Error('Failed to update settings');
+            return res.json();
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userSettings', variables.userId] });
+        },
+    });
+};
+
+export const useSyncDeposits = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (userId: string) => {
+            const res = await fetch(`${API_URL}/user/proxy/sync`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId }),
+            });
+            if (!res.ok) throw new Error('Failed to sync deposits');
+            return res.json();
+        },
+        onSuccess: (_, userId) => {
+            // Invalidate activity and balance to refresh UI
+            queryClient.invalidateQueries({ queryKey: ['activity', userId] });
+            queryClient.invalidateQueries({ queryKey: ['proxyWallet', userId] });
+        },
+    });
+};
+
+export const useSetProxyWallet = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ userId, proxyWallet }: { userId: string; proxyWallet: string }) => {
+            const res = await fetch(`${API_URL}/user/proxy-wallet`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, proxyWallet }),
+            });
+            if (!res.ok) throw new Error('Failed to set proxy wallet');
+            return res.json();
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userSettings', variables.userId] });
+        },
+    });
+};
+
+export const useProxyWallet = (userId: string) => {
+    return useQuery({
+        queryKey: ["proxyWallet", userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/user/proxy?userId=${userId}`);
+            if (res.status === 404) return null; // Handle no wallet found gracefully
+            if (!res.ok) throw new Error("Failed to fetch proxy wallet");
+            return res.json();
+        },
+        enabled: !!userId,
+        refetchInterval: 10000,
+    });
+};
+
+export const useUserPositions = (userId: string) => {
+    return useQuery({
+        queryKey: ['positions', userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/portfolio/${userId}`);
+            if (!res.ok) throw new Error("Failed to fetch user positions");
+            const data = await res.json();
+            // Ensure we return the positions array from the response { success: true, positions: [] }
+            return data.positions || [];
+        },
+        enabled: !!userId,
+        // count 0 shares as closed, so we might want to filter them out here or in UI
+        select: (positions: any[]) => positions.filter((p: any) => p.shares > 0),
+    });
+};
+
+export const useUserActivity = (userId: string) => {
+    return useQuery({
+        queryKey: ['activity', userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/user/activity/${userId}`);
+            if (!res.ok) throw new Error("Failed to fetch user activity");
+            const data = await res.json();
+            return data.activities || [];
+        },
+        enabled: !!userId,
+        refetchInterval: 5000,
+    });
+};
+
+export const useUserBalance = (userId: string) => {
+    return useQuery({
+        queryKey: ['balance', userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/portfolio/balance/${userId}`);
+            if (!res.ok) throw new Error("Failed to fetch user balance");
+            const data = await res.json();
+            return data.balance || { usdc: "0", pol: "0", address: "" };
+        },
+        enabled: !!userId,
+        refetchInterval: 5000,
+    });
+};

@@ -1,0 +1,104 @@
+(node:18068) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+--- Debugging Market IDs ---
+Fetching top 3 markets...
+
+[RAW MARKET OBJECT KEYS]: [
+  'id',
+  'question',
+  'conditionId',
+  'slug',
+  'endDate',
+  'liquidity',
+  'startDate',
+  'image',
+  'icon',
+  'description',
+  'outcomes',
+  'outcomePrices',
+  'volume',
+  'active',
+  'closed',
+  'marketMakerAddress',
+  'createdAt',
+  'updatedAt',
+  'new',
+  'featured',
+  'submitted_by',
+  'archived',
+  'resolvedBy',
+  'restricted',
+  'groupItemTitle',
+  'groupItemThreshold',
+  'questionID',
+  'enableOrderBook',
+  'orderPriceMinTickSize',
+  'orderMinSize',
+  'volumeNum',
+  'liquidityNum',
+  'endDateIso',
+  'startDateIso',
+  'hasReviewedDates',
+  'volume24hr',
+  'volume1wk',
+  'volume1mo',
+  'volume1yr',
+  'clobTokenIds',
+  'umaBond',
+  'umaReward',
+  'volume24hrClob',
+  'volume1wkClob',
+  'volume1moClob',
+  'volume1yrClob',
+  'volumeClob',
+  'liquidityClob',
+  'customLiveness',
+  'acceptingOrders',
+  'negRisk',
+  'negRiskMarketID',
+  'negRiskRequestID',
+  'events',
+  'ready',
+  'funded',
+  'acceptingOrdersTimestamp',
+  'cyom',
+  'competitive',
+  'pagerDutyNotificationEnabled',
+  'approved',
+  'rewardsMinSize',
+  'rewardsMaxSpread',
+  'spread',
+  'oneDayPriceChange',
+  'oneWeekPriceChange',
+  'oneMonthPriceChange',
+  'lastTradePrice',
+  'bestBid',
+  'bestAsk',
+  'automaticallyActive',
+  'clearBookOnStart',
+  'showGmpSeries',
+  'showGmpOutcome',
+  'manualActivation',
+  'negRiskOther',
+  'umaResolutionStatuses',
+  'pendingDeployment',
+  'deploying',
+  'deployingTimestamp',
+  'rfqEnabled',
+  'holdingRewardsEnabled',
+  'feesEnabled'
+]
+Raw ID: 570360
+Raw QuestionID: 0x8d9540f4caef531e7065998ff291ba9038588cfe647d8f4822f892112df86f00
+Raw ConditionID: 0x6903b766f5fda3d5b02f4472a6b4154419e78b7fd126c0b29ce17bb8e20b20cc
+
+[Sample Market from Tool]
+Tool ID (m.id): 0x8d9540f4caef531e7065998ff291ba9038588cfe647d8f4822f892112df86f00
+Question: Fed decreases interest rates by 50+ bps after December 2025 meeting?
+Token IDs: ["74018646712472971445258547247048869505144598783748525202442089895996249694683", "21489772516410038586556744342392982044189999368638682594741395650226594484811"]
+
+[Testing Gamma Lookup]
+URL: https://gamma-api.polymarket.com/markets/0x8d9540f4caef531e7065998ff291ba9038588cfe647d8f4822f892112df86f00
+FAILED: 422 Unprocessable Entity
+Body: {"type":"validation error","error":"id is invalid"}
+

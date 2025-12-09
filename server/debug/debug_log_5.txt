@@ -1,0 +1,17 @@
+(node:19744) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+--- Post-Onboarding Debug ---
+EOA: 0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0
+Proxy: 0x917EAEE23635ABD65E04F6Fc97Fa0adbFC14ca7B
+
+[TEST 1] Type 0 (EOA)
+[CLOB Client] request error {"status":400,"statusText":"Bad Request","data":{"error":"Could not derive api key!"},"config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{},"headers":{"Accept":"*/*","POLY_ADDRESS":"0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0","POLY_SIGNATURE":"0xe5ca8ac10575661bae0f92e82b9a768c43b51ea51c9ca176b30caf8607efe7b051e97c78c5fe55c1e6fc8fc4c48e6668c6adcf231f1a5f75a6f1192585000f051c","POLY_TIMESTAMP":"1765265022","POLY_NONCE":"0","User-Agent":"@polymarket/clob-client","Connection":"keep-alive","Content-Type":"application/json","Accept-Encoding":"gzip"},"method":"get","url":"https://clob.polymarket.com/auth/derive-api-key","params":{}}}
+SUCCESS Type 0: { key: undefined, secret: undefined, passphrase: undefined }
+
+[TEST 2] Type 1 (Poly Proxy)
+[CLOB Client] request error {"status":400,"statusText":"Bad Request","data":{"error":"Could not derive api key!"},"config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{},"headers":{"Accept":"*/*","POLY_ADDRESS":"0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0","POLY_SIGNATURE":"0xe5ca8ac10575661bae0f92e82b9a768c43b51ea51c9ca176b30caf8607efe7b051e97c78c5fe55c1e6fc8fc4c48e6668c6adcf231f1a5f75a6f1192585000f051c","POLY_TIMESTAMP":"1765265022","POLY_NONCE":"0","User-Agent":"@polymarket/clob-client","Connection":"keep-alive","Content-Type":"application/json","Accept-Encoding":"gzip"},"method":"get","url":"https://clob.polymarket.com/auth/derive-api-key","params":{}}}
+SUCCESS Type 1: { key: undefined, secret: undefined, passphrase: undefined }
+
+[TEST 3] Type 2 (Gnosis Safe)
+[CLOB Client] request error {"status":400,"statusText":"Bad Request","data":{"error":"Could not derive api key!"},"config":{"transitional":{"silentJSONParsing":true,"forcedJSONParsing":true,"clarifyTimeoutError":false},"transformRequest":[null],"transformResponse":[null],"timeout":0,"xsrfCookieName":"XSRF-TOKEN","xsrfHeaderName":"X-XSRF-TOKEN","maxContentLength":-1,"maxBodyLength":-1,"env":{},"headers":{"Accept":"*/*","POLY_ADDRESS":"0xAE5f490d08fd7Cce64F2B921df7CDE86420Cedb0","POLY_SIGNATURE":"0xca36b3ec0538a30039d59368fc244f2c64015d0afac77167b09d3c422491fada17b95fc5e0f6ba293b39040fecf597dde6aaca52d578f77af04e698e158ac2de1c","POLY_TIMESTAMP":"1765265023","POLY_NONCE":"0","User-Agent":"@polymarket/clob-client","Connection":"keep-alive","Content-Type":"application/json","Accept-Encoding":"gzip"},"method":"get","url":"https://clob.polymarket.com/auth/derive-api-key","params":{}}}
+SUCCESS Type 2: { key: undefined, secret: undefined, passphrase: undefined }

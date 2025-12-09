@@ -1,0 +1,2 @@
+export declare function executeAgentTrade(rpcUrl: string, agentPrivateKey: string, moduleAddress: string, safeAddress: string, polymarketRouterAddress: string): Promise<any>;
+//# sourceMappingURL=agentExecutor.d.ts.map

@@ -1,0 +1,1072 @@
+import type * as runtime from "@prisma/client/runtime/client";
+import type * as Prisma from "../internal/prismaNamespace.js";
+/**
+ * Model MarketCache
+ *
+ */
+export type MarketCacheModel = runtime.Types.Result.DefaultSelection<Prisma.$MarketCachePayload>;
+export type AggregateMarketCache = {
+    _count: MarketCacheCountAggregateOutputType | null;
+    _min: MarketCacheMinAggregateOutputType | null;
+    _max: MarketCacheMaxAggregateOutputType | null;
+};
+export type MarketCacheMinAggregateOutputType = {
+    id: string | null;
+    marketId: string | null;
+    question: string | null;
+    outcome1: string | null;
+    outcome2: string | null;
+    imageUrl: string | null;
+    updatedAt: Date | null;
+};
+export type MarketCacheMaxAggregateOutputType = {
+    id: string | null;
+    marketId: string | null;
+    question: string | null;
+    outcome1: string | null;
+    outcome2: string | null;
+    imageUrl: string | null;
+    updatedAt: Date | null;
+};
+export type MarketCacheCountAggregateOutputType = {
+    id: number;
+    marketId: number;
+    question: number;
+    outcome1: number;
+    outcome2: number;
+    imageUrl: number;
+    rawJson: number;
+    updatedAt: number;
+    _all: number;
+};
+export type MarketCacheMinAggregateInputType = {
+    id?: true;
+    marketId?: true;
+    question?: true;
+    outcome1?: true;
+    outcome2?: true;
+    imageUrl?: true;
+    updatedAt?: true;
+};
+export type MarketCacheMaxAggregateInputType = {
+    id?: true;
+    marketId?: true;
+    question?: true;
+    outcome1?: true;
+    outcome2?: true;
+    imageUrl?: true;
+    updatedAt?: true;
+};
+export type MarketCacheCountAggregateInputType = {
+    id?: true;
+    marketId?: true;
+    question?: true;
+    outcome1?: true;
+    outcome2?: true;
+    imageUrl?: true;
+    rawJson?: true;
+    updatedAt?: true;
+    _all?: true;
+};
+export type MarketCacheAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketCache to aggregate.
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of MarketCaches to fetch.
+     */
+    orderBy?: Prisma.MarketCacheOrderByWithRelationInput | Prisma.MarketCacheOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: Prisma.MarketCacheWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` MarketCaches from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` MarketCaches.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned MarketCaches
+    **/
+    _count?: true | MarketCacheCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarketCacheMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarketCacheMaxAggregateInputType;
+};
+export type GetMarketCacheAggregateType<T extends MarketCacheAggregateArgs> = {
+    [P in keyof T & keyof AggregateMarketCache]: P extends '_count' | 'count' ? T[P] extends true ? number : Prisma.GetScalarType<T[P], AggregateMarketCache[P]> : Prisma.GetScalarType<T[P], AggregateMarketCache[P]>;
+};
+export type MarketCacheGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.MarketCacheWhereInput;
+    orderBy?: Prisma.MarketCacheOrderByWithAggregationInput | Prisma.MarketCacheOrderByWithAggregationInput[];
+    by: Prisma.MarketCacheScalarFieldEnum[] | Prisma.MarketCacheScalarFieldEnum;
+    having?: Prisma.MarketCacheScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: MarketCacheCountAggregateInputType | true;
+    _min?: MarketCacheMinAggregateInputType;
+    _max?: MarketCacheMaxAggregateInputType;
+};
+export type MarketCacheGroupByOutputType = {
+    id: string;
+    marketId: string;
+    question: string;
+    outcome1: string | null;
+    outcome2: string | null;
+    imageUrl: string | null;
+    rawJson: runtime.JsonValue;
+    updatedAt: Date;
+    _count: MarketCacheCountAggregateOutputType | null;
+    _min: MarketCacheMinAggregateOutputType | null;
+    _max: MarketCacheMaxAggregateOutputType | null;
+};
+type GetMarketCacheGroupByPayload<T extends MarketCacheGroupByArgs> = Prisma.PrismaPromise<Array<Prisma.PickEnumerable<MarketCacheGroupByOutputType, T['by']> & {
+    [P in ((keyof T) & (keyof MarketCacheGroupByOutputType))]: P extends '_count' ? T[P] extends boolean ? number : Prisma.GetScalarType<T[P], MarketCacheGroupByOutputType[P]> : Prisma.GetScalarType<T[P], MarketCacheGroupByOutputType[P]>;
+}>>;
+export type MarketCacheWhereInput = {
+    AND?: Prisma.MarketCacheWhereInput | Prisma.MarketCacheWhereInput[];
+    OR?: Prisma.MarketCacheWhereInput[];
+    NOT?: Prisma.MarketCacheWhereInput | Prisma.MarketCacheWhereInput[];
+    id?: Prisma.StringFilter<"MarketCache"> | string;
+    marketId?: Prisma.StringFilter<"MarketCache"> | string;
+    question?: Prisma.StringFilter<"MarketCache"> | string;
+    outcome1?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    outcome2?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    imageUrl?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    rawJson?: Prisma.JsonFilter<"MarketCache">;
+    updatedAt?: Prisma.DateTimeFilter<"MarketCache"> | Date | string;
+};
+export type MarketCacheOrderByWithRelationInput = {
+    id?: Prisma.SortOrder;
+    marketId?: Prisma.SortOrder;
+    question?: Prisma.SortOrder;
+    outcome1?: Prisma.SortOrderInput | Prisma.SortOrder;
+    outcome2?: Prisma.SortOrderInput | Prisma.SortOrder;
+    imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
+    rawJson?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type MarketCacheWhereUniqueInput = Prisma.AtLeast<{
+    id?: string;
+    marketId?: string;
+    AND?: Prisma.MarketCacheWhereInput | Prisma.MarketCacheWhereInput[];
+    OR?: Prisma.MarketCacheWhereInput[];
+    NOT?: Prisma.MarketCacheWhereInput | Prisma.MarketCacheWhereInput[];
+    question?: Prisma.StringFilter<"MarketCache"> | string;
+    outcome1?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    outcome2?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    imageUrl?: Prisma.StringNullableFilter<"MarketCache"> | string | null;
+    rawJson?: Prisma.JsonFilter<"MarketCache">;
+    updatedAt?: Prisma.DateTimeFilter<"MarketCache"> | Date | string;
+}, "id" | "marketId">;
+export type MarketCacheOrderByWithAggregationInput = {
+    id?: Prisma.SortOrder;
+    marketId?: Prisma.SortOrder;
+    question?: Prisma.SortOrder;
+    outcome1?: Prisma.SortOrderInput | Prisma.SortOrder;
+    outcome2?: Prisma.SortOrderInput | Prisma.SortOrder;
+    imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder;
+    rawJson?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+    _count?: Prisma.MarketCacheCountOrderByAggregateInput;
+    _max?: Prisma.MarketCacheMaxOrderByAggregateInput;
+    _min?: Prisma.MarketCacheMinOrderByAggregateInput;
+};
+export type MarketCacheScalarWhereWithAggregatesInput = {
+    AND?: Prisma.MarketCacheScalarWhereWithAggregatesInput | Prisma.MarketCacheScalarWhereWithAggregatesInput[];
+    OR?: Prisma.MarketCacheScalarWhereWithAggregatesInput[];
+    NOT?: Prisma.MarketCacheScalarWhereWithAggregatesInput | Prisma.MarketCacheScalarWhereWithAggregatesInput[];
+    id?: Prisma.StringWithAggregatesFilter<"MarketCache"> | string;
+    marketId?: Prisma.StringWithAggregatesFilter<"MarketCache"> | string;
+    question?: Prisma.StringWithAggregatesFilter<"MarketCache"> | string;
+    outcome1?: Prisma.StringNullableWithAggregatesFilter<"MarketCache"> | string | null;
+    outcome2?: Prisma.StringNullableWithAggregatesFilter<"MarketCache"> | string | null;
+    imageUrl?: Prisma.StringNullableWithAggregatesFilter<"MarketCache"> | string | null;
+    rawJson?: Prisma.JsonWithAggregatesFilter<"MarketCache">;
+    updatedAt?: Prisma.DateTimeWithAggregatesFilter<"MarketCache"> | Date | string;
+};
+export type MarketCacheCreateInput = {
+    id?: string;
+    marketId: string;
+    question: string;
+    outcome1?: string | null;
+    outcome2?: string | null;
+    imageUrl?: string | null;
+    rawJson: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Date | string;
+};
+export type MarketCacheUncheckedCreateInput = {
+    id?: string;
+    marketId: string;
+    question: string;
+    outcome1?: string | null;
+    outcome2?: string | null;
+    imageUrl?: string | null;
+    rawJson: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Date | string;
+};
+export type MarketCacheUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    marketId?: Prisma.StringFieldUpdateOperationsInput | string;
+    question?: Prisma.StringFieldUpdateOperationsInput | string;
+    outcome1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    outcome2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    rawJson?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type MarketCacheUncheckedUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    marketId?: Prisma.StringFieldUpdateOperationsInput | string;
+    question?: Prisma.StringFieldUpdateOperationsInput | string;
+    outcome1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    outcome2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    rawJson?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type MarketCacheCreateManyInput = {
+    id?: string;
+    marketId: string;
+    question: string;
+    outcome1?: string | null;
+    outcome2?: string | null;
+    imageUrl?: string | null;
+    rawJson: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Date | string;
+};
+export type MarketCacheUpdateManyMutationInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    marketId?: Prisma.StringFieldUpdateOperationsInput | string;
+    question?: Prisma.StringFieldUpdateOperationsInput | string;
+    outcome1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    outcome2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    rawJson?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type MarketCacheUncheckedUpdateManyInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    marketId?: Prisma.StringFieldUpdateOperationsInput | string;
+    question?: Prisma.StringFieldUpdateOperationsInput | string;
+    outcome1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    outcome2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    rawJson?: Prisma.JsonNullValueInput | runtime.InputJsonValue;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type MarketCacheCountOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    marketId?: Prisma.SortOrder;
+    question?: Prisma.SortOrder;
+    outcome1?: Prisma.SortOrder;
+    outcome2?: Prisma.SortOrder;
+    imageUrl?: Prisma.SortOrder;
+    rawJson?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type MarketCacheMaxOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    marketId?: Prisma.SortOrder;
+    question?: Prisma.SortOrder;
+    outcome1?: Prisma.SortOrder;
+    outcome2?: Prisma.SortOrder;
+    imageUrl?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type MarketCacheMinOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    marketId?: Prisma.SortOrder;
+    question?: Prisma.SortOrder;
+    outcome1?: Prisma.SortOrder;
+    outcome2?: Prisma.SortOrder;
+    imageUrl?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type MarketCacheSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    marketId?: boolean;
+    question?: boolean;
+    outcome1?: boolean;
+    outcome2?: boolean;
+    imageUrl?: boolean;
+    rawJson?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs["result"]["marketCache"]>;
+export type MarketCacheSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    marketId?: boolean;
+    question?: boolean;
+    outcome1?: boolean;
+    outcome2?: boolean;
+    imageUrl?: boolean;
+    rawJson?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs["result"]["marketCache"]>;
+export type MarketCacheSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    marketId?: boolean;
+    question?: boolean;
+    outcome1?: boolean;
+    outcome2?: boolean;
+    imageUrl?: boolean;
+    rawJson?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs["result"]["marketCache"]>;
+export type MarketCacheSelectScalar = {
+    id?: boolean;
+    marketId?: boolean;
+    question?: boolean;
+    outcome1?: boolean;
+    outcome2?: boolean;
+    imageUrl?: boolean;
+    rawJson?: boolean;
+    updatedAt?: boolean;
+};
+export type MarketCacheOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "marketId" | "question" | "outcome1" | "outcome2" | "imageUrl" | "rawJson" | "updatedAt", ExtArgs["result"]["marketCache"]>;
+export type $MarketCachePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    name: "MarketCache";
+    objects: {};
+    scalars: runtime.Types.Extensions.GetPayloadResult<{
+        id: string;
+        marketId: string;
+        question: string;
+        outcome1: string | null;
+        outcome2: string | null;
+        imageUrl: string | null;
+        rawJson: runtime.JsonValue;
+        updatedAt: Date;
+    }, ExtArgs["result"]["marketCache"]>;
+    composites: {};
+};
+export type MarketCacheGetPayload<S extends boolean | null | undefined | MarketCacheDefaultArgs> = runtime.Types.Result.GetResult<Prisma.$MarketCachePayload, S>;
+export type MarketCacheCountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = Omit<MarketCacheFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: MarketCacheCountAggregateInputType | true;
+};
+export interface MarketCacheDelegate<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: {
+        types: Prisma.TypeMap<ExtArgs>['model']['MarketCache'];
+        meta: {
+            name: 'MarketCache';
+        };
+    };
+    /**
+     * Find zero or one MarketCache that matches the filter.
+     * @param {MarketCacheFindUniqueArgs} args - Arguments to find a MarketCache
+     * @example
+     * // Get one MarketCache
+     * const marketCache = await prisma.marketCache.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarketCacheFindUniqueArgs>(args: Prisma.SelectSubset<T, MarketCacheFindUniqueArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find one MarketCache that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarketCacheFindUniqueOrThrowArgs} args - Arguments to find a MarketCache
+     * @example
+     * // Get one MarketCache
+     * const marketCache = await prisma.marketCache.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarketCacheFindUniqueOrThrowArgs>(args: Prisma.SelectSubset<T, MarketCacheFindUniqueOrThrowArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first MarketCache that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheFindFirstArgs} args - Arguments to find a MarketCache
+     * @example
+     * // Get one MarketCache
+     * const marketCache = await prisma.marketCache.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarketCacheFindFirstArgs>(args?: Prisma.SelectSubset<T, MarketCacheFindFirstArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first MarketCache that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheFindFirstOrThrowArgs} args - Arguments to find a MarketCache
+     * @example
+     * // Get one MarketCache
+     * const marketCache = await prisma.marketCache.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarketCacheFindFirstOrThrowArgs>(args?: Prisma.SelectSubset<T, MarketCacheFindFirstOrThrowArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find zero or more MarketCaches that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarketCaches
+     * const marketCaches = await prisma.marketCache.findMany()
+     *
+     * // Get first 10 MarketCaches
+     * const marketCaches = await prisma.marketCache.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const marketCacheWithIdOnly = await prisma.marketCache.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends MarketCacheFindManyArgs>(args?: Prisma.SelectSubset<T, MarketCacheFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>;
+    /**
+     * Create a MarketCache.
+     * @param {MarketCacheCreateArgs} args - Arguments to create a MarketCache.
+     * @example
+     * // Create one MarketCache
+     * const MarketCache = await prisma.marketCache.create({
+     *   data: {
+     *     // ... data to create a MarketCache
+     *   }
+     * })
+     *
+     */
+    create<T extends MarketCacheCreateArgs>(args: Prisma.SelectSubset<T, MarketCacheCreateArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Create many MarketCaches.
+     * @param {MarketCacheCreateManyArgs} args - Arguments to create many MarketCaches.
+     * @example
+     * // Create many MarketCaches
+     * const marketCache = await prisma.marketCache.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends MarketCacheCreateManyArgs>(args?: Prisma.SelectSubset<T, MarketCacheCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Create many MarketCaches and returns the data saved in the database.
+     * @param {MarketCacheCreateManyAndReturnArgs} args - Arguments to create many MarketCaches.
+     * @example
+     * // Create many MarketCaches
+     * const marketCache = await prisma.marketCache.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many MarketCaches and only return the `id`
+     * const marketCacheWithIdOnly = await prisma.marketCache.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends MarketCacheCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, MarketCacheCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>;
+    /**
+     * Delete a MarketCache.
+     * @param {MarketCacheDeleteArgs} args - Arguments to delete one MarketCache.
+     * @example
+     * // Delete one MarketCache
+     * const MarketCache = await prisma.marketCache.delete({
+     *   where: {
+     *     // ... filter to delete one MarketCache
+     *   }
+     * })
+     *
+     */
+    delete<T extends MarketCacheDeleteArgs>(args: Prisma.SelectSubset<T, MarketCacheDeleteArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Update one MarketCache.
+     * @param {MarketCacheUpdateArgs} args - Arguments to update one MarketCache.
+     * @example
+     * // Update one MarketCache
+     * const marketCache = await prisma.marketCache.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends MarketCacheUpdateArgs>(args: Prisma.SelectSubset<T, MarketCacheUpdateArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Delete zero or more MarketCaches.
+     * @param {MarketCacheDeleteManyArgs} args - Arguments to filter MarketCaches to delete.
+     * @example
+     * // Delete a few MarketCaches
+     * const { count } = await prisma.marketCache.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends MarketCacheDeleteManyArgs>(args?: Prisma.SelectSubset<T, MarketCacheDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more MarketCaches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarketCaches
+     * const marketCache = await prisma.marketCache.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends MarketCacheUpdateManyArgs>(args: Prisma.SelectSubset<T, MarketCacheUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more MarketCaches and returns the data updated in the database.
+     * @param {MarketCacheUpdateManyAndReturnArgs} args - Arguments to update many MarketCaches.
+     * @example
+     * // Update many MarketCaches
+     * const marketCache = await prisma.marketCache.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more MarketCaches and only return the `id`
+     * const marketCacheWithIdOnly = await prisma.marketCache.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends MarketCacheUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, MarketCacheUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>;
+    /**
+     * Create or update one MarketCache.
+     * @param {MarketCacheUpsertArgs} args - Arguments to update or create a MarketCache.
+     * @example
+     * // Update or create a MarketCache
+     * const marketCache = await prisma.marketCache.upsert({
+     *   create: {
+     *     // ... data to create a MarketCache
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarketCache we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarketCacheUpsertArgs>(args: Prisma.SelectSubset<T, MarketCacheUpsertArgs<ExtArgs>>): Prisma.Prisma__MarketCacheClient<runtime.Types.Result.GetResult<Prisma.$MarketCachePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Count the number of MarketCaches.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheCountArgs} args - Arguments to filter MarketCaches to count.
+     * @example
+     * // Count the number of MarketCaches
+     * const count = await prisma.marketCache.count({
+     *   where: {
+     *     // ... the filter for the MarketCaches we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarketCacheCountArgs>(args?: Prisma.Subset<T, MarketCacheCountArgs>): Prisma.PrismaPromise<T extends runtime.Types.Utils.Record<'select', any> ? T['select'] extends true ? number : Prisma.GetScalarType<T['select'], MarketCacheCountAggregateOutputType> : number>;
+    /**
+     * Allows you to perform aggregations operations on a MarketCache.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarketCacheAggregateArgs>(args: Prisma.Subset<T, MarketCacheAggregateArgs>): Prisma.PrismaPromise<GetMarketCacheAggregateType<T>>;
+    /**
+     * Group by MarketCache.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarketCacheGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<T extends MarketCacheGroupByArgs, HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>, OrderByArg extends Prisma.True extends HasSelectOrTake ? {
+        orderBy: MarketCacheGroupByArgs['orderBy'];
+    } : {
+        orderBy?: MarketCacheGroupByArgs['orderBy'];
+    }, OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>, ByFields extends Prisma.MaybeTupleToUnion<T['by']>, ByValid extends Prisma.Has<ByFields, OrderFields>, HavingFields extends Prisma.GetHavingFields<T['having']>, HavingValid extends Prisma.Has<ByFields, HavingFields>, ByEmpty extends T['by'] extends never[] ? Prisma.True : Prisma.False, InputErrors extends ByEmpty extends Prisma.True ? `Error: "by" must not be empty.` : HavingValid extends Prisma.False ? {
+        [P in HavingFields]: P extends ByFields ? never : P extends string ? `Error: Field "${P}" used in "having" needs to be provided in "by".` : [
+            Error,
+            'Field ',
+            P,
+            ` in "having" needs to be provided in "by"`
+        ];
+    }[HavingFields] : 'take' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "take", you also need to provide "orderBy"' : 'skip' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "skip", you also need to provide "orderBy"' : ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields]>(args: Prisma.SubsetIntersection<T, MarketCacheGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarketCacheGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the MarketCache model
+     */
+    readonly fields: MarketCacheFieldRefs;
+}
+/**
+ * The delegate class that acts as a "Promise-like" for MarketCache.
+ * Why is this prefixed with `Prisma__`?
+ * Because we want to prevent naming conflicts as mentioned in
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export interface Prisma__MarketCacheClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise";
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
+}
+/**
+ * Fields of the MarketCache model
+ */
+export interface MarketCacheFieldRefs {
+    readonly id: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly marketId: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly question: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly outcome1: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly outcome2: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly imageUrl: Prisma.FieldRef<"MarketCache", 'String'>;
+    readonly rawJson: Prisma.FieldRef<"MarketCache", 'Json'>;
+    readonly updatedAt: Prisma.FieldRef<"MarketCache", 'DateTime'>;
+}
+/**
+ * MarketCache findUnique
+ */
+export type MarketCacheFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter, which MarketCache to fetch.
+     */
+    where: Prisma.MarketCacheWhereUniqueInput;
+};
+/**
+ * MarketCache findUniqueOrThrow
+ */
+export type MarketCacheFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter, which MarketCache to fetch.
+     */
+    where: Prisma.MarketCacheWhereUniqueInput;
+};
+/**
+ * MarketCache findFirst
+ */
+export type MarketCacheFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter, which MarketCache to fetch.
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of MarketCaches to fetch.
+     */
+    orderBy?: Prisma.MarketCacheOrderByWithRelationInput | Prisma.MarketCacheOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for MarketCaches.
+     */
+    cursor?: Prisma.MarketCacheWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` MarketCaches from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` MarketCaches.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of MarketCaches.
+     */
+    distinct?: Prisma.MarketCacheScalarFieldEnum | Prisma.MarketCacheScalarFieldEnum[];
+};
+/**
+ * MarketCache findFirstOrThrow
+ */
+export type MarketCacheFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter, which MarketCache to fetch.
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of MarketCaches to fetch.
+     */
+    orderBy?: Prisma.MarketCacheOrderByWithRelationInput | Prisma.MarketCacheOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for MarketCaches.
+     */
+    cursor?: Prisma.MarketCacheWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` MarketCaches from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` MarketCaches.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of MarketCaches.
+     */
+    distinct?: Prisma.MarketCacheScalarFieldEnum | Prisma.MarketCacheScalarFieldEnum[];
+};
+/**
+ * MarketCache findMany
+ */
+export type MarketCacheFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter, which MarketCaches to fetch.
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of MarketCaches to fetch.
+     */
+    orderBy?: Prisma.MarketCacheOrderByWithRelationInput | Prisma.MarketCacheOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing MarketCaches.
+     */
+    cursor?: Prisma.MarketCacheWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` MarketCaches from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` MarketCaches.
+     */
+    skip?: number;
+    distinct?: Prisma.MarketCacheScalarFieldEnum | Prisma.MarketCacheScalarFieldEnum[];
+};
+/**
+ * MarketCache create
+ */
+export type MarketCacheCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * The data needed to create a MarketCache.
+     */
+    data: Prisma.XOR<Prisma.MarketCacheCreateInput, Prisma.MarketCacheUncheckedCreateInput>;
+};
+/**
+ * MarketCache createMany
+ */
+export type MarketCacheCreateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarketCaches.
+     */
+    data: Prisma.MarketCacheCreateManyInput | Prisma.MarketCacheCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * MarketCache createManyAndReturn
+ */
+export type MarketCacheCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * The data used to create many MarketCaches.
+     */
+    data: Prisma.MarketCacheCreateManyInput | Prisma.MarketCacheCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * MarketCache update
+ */
+export type MarketCacheUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * The data needed to update a MarketCache.
+     */
+    data: Prisma.XOR<Prisma.MarketCacheUpdateInput, Prisma.MarketCacheUncheckedUpdateInput>;
+    /**
+     * Choose, which MarketCache to update.
+     */
+    where: Prisma.MarketCacheWhereUniqueInput;
+};
+/**
+ * MarketCache updateMany
+ */
+export type MarketCacheUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarketCaches.
+     */
+    data: Prisma.XOR<Prisma.MarketCacheUpdateManyMutationInput, Prisma.MarketCacheUncheckedUpdateManyInput>;
+    /**
+     * Filter which MarketCaches to update
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * Limit how many MarketCaches to update.
+     */
+    limit?: number;
+};
+/**
+ * MarketCache updateManyAndReturn
+ */
+export type MarketCacheUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * The data used to update MarketCaches.
+     */
+    data: Prisma.XOR<Prisma.MarketCacheUpdateManyMutationInput, Prisma.MarketCacheUncheckedUpdateManyInput>;
+    /**
+     * Filter which MarketCaches to update
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * Limit how many MarketCaches to update.
+     */
+    limit?: number;
+};
+/**
+ * MarketCache upsert
+ */
+export type MarketCacheUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * The filter to search for the MarketCache to update in case it exists.
+     */
+    where: Prisma.MarketCacheWhereUniqueInput;
+    /**
+     * In case the MarketCache found by the `where` argument doesn't exist, create a new MarketCache with this data.
+     */
+    create: Prisma.XOR<Prisma.MarketCacheCreateInput, Prisma.MarketCacheUncheckedCreateInput>;
+    /**
+     * In case the MarketCache was found with the provided `where` argument, update it with this data.
+     */
+    update: Prisma.XOR<Prisma.MarketCacheUpdateInput, Prisma.MarketCacheUncheckedUpdateInput>;
+};
+/**
+ * MarketCache delete
+ */
+export type MarketCacheDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+    /**
+     * Filter which MarketCache to delete.
+     */
+    where: Prisma.MarketCacheWhereUniqueInput;
+};
+/**
+ * MarketCache deleteMany
+ */
+export type MarketCacheDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarketCaches to delete
+     */
+    where?: Prisma.MarketCacheWhereInput;
+    /**
+     * Limit how many MarketCaches to delete.
+     */
+    limit?: number;
+};
+/**
+ * MarketCache without action
+ */
+export type MarketCacheDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarketCache
+     */
+    select?: Prisma.MarketCacheSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the MarketCache
+     */
+    omit?: Prisma.MarketCacheOmit<ExtArgs> | null;
+};
+export {};
+//# sourceMappingURL=MarketCache.d.ts.map

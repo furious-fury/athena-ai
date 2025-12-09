@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  userName      String?  @unique
+  walletAddress String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  balance       Float    @default(0)
+
+  // Pimlico Smart Account (ERC-4337)
+  scwAddress         String? @unique
+  scwOwnerPrivateKey String? // Encrypted Storage
+  scwFactoryAddress  String?
+
+  // Derived API Credentials (Encrypted/Stored)
+  apiKey        String?
+  apiSecret     String?
+  apiPassphrase String?
+
+  // User-Configurable Risk Limits
+  maxTradeAmount       Float @default(100)
+  maxMarketExposure    Float @default(500)
+  maxTotalExposure     Float @default(2000)
+  tradeCooldownSeconds Int   @default(300)
+
+  agents     Agent[]
+  trades     Trade[]
+  positions  Position[]
+  agentLogs  AgentLog[]
+  activities Activity[] // Relation for deposits/withdrawals
+}
+
+model Agent {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  name         String
+  description  String?
+  systemPrompt String // the main instruction set
+  llmProvider  LLMProvider @default(OPENAI)
+  llmModel     String? // e.g. gpt-4.1, claude-3.5, llama3.2  
+
+  riskProfile     RiskProfile @default(MEDIUM)
+  pollingInterval Int?        @default(60) // seconds between agent runs  
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trades    Trade[]
+  agentLogs AgentLog[]
+}
+
+enum RiskProfile {
+  LOW
+  MEDIUM
+  HIGH
+  DEGEN
+}
+
+model Trade {
+  id        String      @id @default(cuid())
+  user      User        @relation(fields: [userId], references: [id])
+  userId    String
+  agent     Agent       @relation(fields: [agentId], references: [id])
+  agentId   String
+  marketId  String
+  outcome   String // YES or NO
+  side      String // BUY or SELL
+  amount    Float
+  price     Float?
+  txId      String?
+  status    TradeStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+}
+
+model Position {
+  id            String  @id @default(cuid())
+  user          User    @relation(fields: [userId], references: [id])
+  userId        String
+  marketId      String
+  marketTitle   String? // Store the human-readable question
+  outcome       String // YES or NO
+  shares        Float   @default(0)
+  avgEntryPrice Float   @default(0)
+  exposure      Float   @default(0) // How much capital is at risk
+
+  @@unique([userId, marketId])
+}
+
+enum TradeStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  FAILED
+}
+
+enum LLMProvider {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  CUSTOM
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  agentId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String // "ANALYSIS", "DECISION", "TRADE", "RISK_BLOCK"
+  message   String   @db.Text
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  // ... existing indexes
+  @@index([agentId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String // "DEPOSIT", "WITHDRAWAL"
+  amount    Float
+  txId      String?
+  timestamp DateTime @default(now())
+
+  @@index([userId, timestamp])
+}

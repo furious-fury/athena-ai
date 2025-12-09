@@ -1,0 +1,1 @@
+{"version":3,"file":"AgentWorker.d.ts","sourceRoot":"","sources":["../../src/workers/AgentWorker.ts"],"names":[],"mappings":"AAEA,OAAO,MAAM,MAAM,SAAS,CAAC;AAG7B;;GAEG;AACH,qBAAa,WAAW;IACpB,OAAO,EAAE,MAAM,CAAC;IAChB,OAAO,UAAS;IAChB,KAAK,EAAE,MAAM,CAAC;gBAEF,OAAO,EAAE,MAAM,EAAE,WAAW,SAAI;IAK5C;;OAEG;IACG,KAAK;IAuBX;;OAEG;YACW,mBAAmB;IA4BjC,IAAI;CAIP"}

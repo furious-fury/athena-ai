@@ -1,0 +1,1 @@
+{"version":3,"file":"scheduler.d.ts","sourceRoot":"","sources":["../../src/workers/scheduler.ts"],"names":[],"mappings":"AAEA;;GAEG;AACH,qBAAa,cAAc;IACvB,OAAO,CAAC,OAAO,CAAuC;IAEtD;;OAEG;IACH,UAAU,CAAC,OAAO,EAAE,MAAM;IAW1B;;OAEG;IACH,SAAS,CAAC,OAAO,EAAE,MAAM;IAOzB;;OAEG;IACH,WAAW,CAAC,QAAQ,EAAE,MAAM,EAAE;IAM9B;;OAEG;IACH,OAAO;IAOP;;OAEG;IACH,eAAe;CAGlB"}

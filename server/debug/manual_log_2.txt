@@ -1,0 +1,16 @@
+(node:12244) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+--- Manual Derivation Test Variations ---
+Wallet: 0x3f2C5471d922b6c97d33D4061ad571F04aA29856
+
+--- Variation 1: Nonce=Timestamp, Lowercase Address ---
+Msg1: 17652450231765245023GET/auth/derive-api-key
+Status: 401
+Response: {"error":"Invalid L1 Request headers"}
+
+
+--- Variation 2: Nonce=0, Lowercase Address ---
+Msg2: 17652450230GET/auth/derive-api-key
+Status: 401
+Response: {"error":"Invalid L1 Request headers"}
+

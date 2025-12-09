@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Athena AI - Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend interface for the Athena AI Agentic Trading Platform. Built with React, Vite, and modern Web3 technologies, it provides a powerful dashboard for managing autonomous trading agents.
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
+- **Web3**: [Wagmi](https://wagmi.sh/) + [RainbowKit](https://www.rainbowkit.com/)
+- **Components**: [Radix UI](https://www.radix-ui.com/) + [Lucide React](https://lucide.dev/)
+- **State Management**: [TanStack Query](https://tanstack.com/query/latest)
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Dashboard**: Real-time overview of portfolio performance and active agents.
+- **Agent Control**: Deploy, start, stop, and configure autonomous trading agents.
+- **Market Explorer**: visual interface to explore available markets and opportunities.
+- **Wallet Integration**: Seamless connection with Web3 wallets for funding and withdrawals.
+- **Activity Feed**: Live feed of agent actions and trade executions.
+- **Dark Mode**: Sleek, specialized dark interface for professional traders.
 
-## Expanding the ESLint configuration
+## 🚀 Setup & Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Install Dependencies**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+   ```bash
+   npm install
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2. **Run Development Server**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+   ```bash
+   npm run dev
+   ```
+
+   The application will start at `http://localhost:5173` (by default).
+
+## 🧩 Project Structure
+
+- `src/components`: Reusable UI components and feature-specific blocks (AgentControl, MarketExplorer, etc.).
+- `src/pages`: Main application views.
+- `src/hooks`: Custom React hooks (Web3 integration, API fetchers).
+- `src/context`: React Context providers.
+- `src/lib`: Utility functions and API clients.
+
+## 🔌 API Connection
+
+The client connects to the **Athena AI Server** (usually running on port 5000). Ensure the backend server is running for full functionality including:
+- Authentication (Login/Signup)
+- Agent Deployment
+- Trade Execution
+- Historical Data
+
+## 📦 Build for Production
+
+To create a production-ready build:
+
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This will compile the application into the `dist` directory, ready to be deployed to any static site host (Vercel, Netlify, S3, etc.).

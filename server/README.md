@@ -1,6 +1,6 @@
-# Poly-Dapp Server
+# Athena AI - Server
 
-The backend service for the Poly-Dapp Agentic Trading platform. This server manages trading agents, risk analysis, portfolio tracking, and handles the job queue for executing trades.
+The backend service for the Athena AI Agentic Trading platform. This server manages trading agents, risk analysis, portfolio tracking, and handles the job queue for executing trades.
 
 ## 🛠️ Tech Stack
 
@@ -8,13 +8,16 @@ The backend service for the Poly-Dapp Agentic Trading platform. This server mana
 - **Framework**: Express.js
 - **Language**: TypeScript
 - **Database**: PostgreSQL (via Prisma ORM)
-- **Queue/Caching**: Redis (BullMQ / Custom implementation)
+- **Queue/Caching**: Redis (BullMQ)
 - **Logging**: Pino
+- **AI/LLM**: OpenAI / Google GenAI (for agent logic)
+- **Blockchain**: Viem / Ethers.js
+- **Markets**: Polymarket CLOB Client
 
 ## 📋 Prerequisites
 
 Ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v16+)
+- [Node.js](https://nodejs.org/) (v18+)
 - [PostgreSQL](https://www.postgresql.org/)
 - [Redis](https://redis.io/)
 
@@ -26,13 +29,21 @@ Ensure you have the following installed:
    ```
 
 2. **Environment Variables**
-   Create a `.env` file in the `server` directory. You can copy the structure below:
+   Create a `.env` file in the `server` directory.
+
    ```env
-   PORT=3000
+   PORT=5000
    DATABASE_URL="postgresql://user:password@localhost:5432/polydapp"
    REDIS_HOST="127.0.0.1"
    REDIS_PORT=6379
-   REDIS_PASSWORD=""
+   
+   # Agent Keys
+   OPENAI_API_KEY="..."
+   GEMINI_API_KEY="..."
+   
+   # Blockchain / Markets
+   PRIVATE_KEY="..."
+   POLYMARKET_API_KEY="..."
    ```
 
 3. **Database Setup**
@@ -50,24 +61,38 @@ npm run dev
 
 **Production Start**:
 ```bash
+npm run build
 npm start
 ```
 
 ## 📡 API Documentation
 
+### Authentication
+- **Login / Signup**
+  - `POST /api/auth/login`
+  - Body: `{ "walletAddress": "0x..." }`
+  - Description: Authenticates user by wallet address. Creates a new user and seeds default agents if the user does not exist.
+
+### Market Data
+- **Get Markets**
+  - `GET /api/market`
+  - Query: `?limit=50`
+  - Description: Fetches active events and markets from Polymarket.
+
 ### Trade Management
 - **Execute Agent Trade**
   - `POST /api/trade/agent`
   - Body: `{ "agentId": "...", "marketId": "...", "amount": 100, "side": "BUY", "outcome": "YES" }`
+  - Description: Queues a trade job for a specific agent.
 
 ### Portfolio & Risk
 - **Get User Portfolio**
   - `GET /api/portfolio/:userId`
-  - Returns user positions and their current status.
+  - Description: Returns user positions, balances, and partial PnL.
 
 - **Get Risk Exposure**
   - `GET /api/risk/exposure/:userId`
-  - Returns total calculated risk exposure for a specific user.
+  - Description: Returns total calculated risk exposure metrics.
 
 ### Queue Management
 - **Get Queue Status**
@@ -82,5 +107,6 @@ npm start
 
 - **Server Entry**: `src/server.ts` initializes Redis, Agent Workers, and the Express App.
 - **Agents**: Logic for trading agents is encapsulated in `src/agents`.
-- **Workers**: `AgentWorker` runs in the background to process trade jobs from the queue.
+- **Workers**: `src/workers` contains `AgentWorker` which runs in the background to process trade jobs from the queue.
 - **Services**: Business logic is separated into services (`TradeService`, `RiskService`, `PortfolioService`).
+- **Tools**: Integrations with external APIs (Polymarket, etc.) are in `src/tools`.

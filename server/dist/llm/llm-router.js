@@ -7,14 +7,13 @@ export class LLMRouter {
         switch (provider) {
             case "OPENAI":
             case LLMProvider.OPENAI:
-                // User is out of OpenAI credits, redirecting to Gemini
-                return new GeminiProvider("gemini-2.5-flash");
+                return new OpenAIProvider(model);
             case "GEMINI":
             case LLMProvider.GEMINI:
-                return new GeminiProvider(model || "gemini-2.5-flash");
+                return new GeminiProvider(model);
             default:
-                // Fallback to Gemini now
-                return new GeminiProvider(model || "gemini-2.5-flash");
+                // Fallback to Gemini
+                return new GeminiProvider(model);
         }
     }
 }

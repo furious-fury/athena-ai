@@ -69,7 +69,8 @@ export default function Dashboard() {
 
     const fetchAgents = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/agents");
+            if (!dbUserId) return;
+            const res = await fetch(`http://localhost:5000/api/agents?userId=${dbUserId}`);
             const data = await res.json();
             if (data.success) setAgents(data.agents);
         } catch (err) {

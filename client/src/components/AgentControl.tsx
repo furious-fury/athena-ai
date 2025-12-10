@@ -19,7 +19,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
     const { switchChainAsync } = useSwitchChain();
     const { data: walletClient } = useWalletClient();
 
-    const { data: agents } = useAgents();
+    const { data: agents } = useAgents(dbUserId);
     const { mutate: controlAgent } = useControlAgent();
     const { mutate: createAgent } = useCreateAgent();
     const { mutate: deleteAgent } = useDeleteAgent();

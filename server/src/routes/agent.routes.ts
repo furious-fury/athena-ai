@@ -8,7 +8,15 @@ export const agentRouter = Router();
 // GET /api/agents
 agentRouter.get("/", async (req, res) => {
     try {
+        const userId = req.query.userId as string;
+
+        if (!userId) {
+            res.json({ success: true, agents: [] });
+            return;
+        }
+
         const agents = await prisma.agent.findMany({
+            where: { userId },
             orderBy: { createdAt: 'desc' }
         });
 

@@ -3,14 +3,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 const API_URL = "http://localhost:5000/api";
 
 // Agents API
-export const useAgents = () => {
+export const useAgents = (userId: string | null) => {
     return useQuery({
-        queryKey: ["agents"],
+        queryKey: ["agents", userId],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/agents`);
+            if (!userId) return [];
+            const res = await fetch(`${API_URL}/agents?userId=${userId}`);
             const data = await res.json();
             return data.agents; // Extract agents array from response
         },
+        enabled: !!userId,
     });
 };
 

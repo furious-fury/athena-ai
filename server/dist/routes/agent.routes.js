@@ -6,7 +6,13 @@ export const agentRouter = Router();
 // GET /api/agents
 agentRouter.get("/", async (req, res) => {
     try {
+        const userId = req.query.userId;
+        if (!userId) {
+            res.json({ success: true, agents: [] });
+            return;
+        }
         const agents = await prisma.agent.findMany({
+            where: { userId },
             orderBy: { createdAt: 'desc' }
         });
         const runningAgentIds = AgentManager.getRunningAgentIds(); // Use Manager

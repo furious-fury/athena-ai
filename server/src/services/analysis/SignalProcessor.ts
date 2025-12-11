@@ -53,11 +53,32 @@ export class SignalProcessor {
     }
 
     private static evaluateMarket(market: Market, signal: MarketSignal): TradeOpportunity | null {
-        // Simple heuristic: If signal matches market question tokens/keywords
-        const matches = signal.relevantTickers.some(t => market.question.includes(t)) ||
-            market.question.toLowerCase().includes(signal.marketTopic.toLowerCase());
+        // Improved matching: Check for semantic relevance, not just keyword presence
+        const marketQuestion = market.question.toLowerCase();
+        const signalTopic = signal.marketTopic.toLowerCase();
+        const signalHeadline = signal.headline.toLowerCase();
 
-        if (!matches) return null;
+        // Check if topic appears in market question
+        const topicMatch = marketQuestion.includes(signalTopic);
+
+        // Check if any tickers appear in market question
+        const tickerMatch = signal.relevantTickers.some(t => marketQuestion.includes(t.toLowerCase()));
+
+        // Basic keyword match
+        if (!topicMatch && !tickerMatch) return null;
+
+        // STRICTER FILTER: Avoid false positives like "Fed" matching "Trump nominating himself as Fed chair"
+        // Check if the signal headline keywords appear in the market question
+        const headlineWords = signalHeadline.split(' ').filter(w => w.length > 4); // Only meaningful words
+        const matchingWords = headlineWords.filter(word => marketQuestion.includes(word));
+        const matchRatio = matchingWords.length / Math.max(headlineWords.length, 1);
+
+        // Require at least 20% of headline words to appear in market question
+        // OR require both topic AND ticker match (stronger signal)
+        if (matchRatio < 0.2 && !(topicMatch && tickerMatch)) {
+            logger.info(`⚠ Weak match: Signal "${signal.headline}" vs Market "${market.question}" (${(matchRatio * 100).toFixed(0)}% word overlap)`);
+            return null;
+        }
 
         // Calculate EV
         // AI Confidence is for the "Event happening" (which usually means YES outcome, or direction specific)

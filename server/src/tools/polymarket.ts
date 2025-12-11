@@ -189,34 +189,78 @@ export const get_balance = async (userId: string) => {
 
 import WebSocket from 'ws';
 
-// Helper: Sync time with Polymarket to prevent "timestamp too loose" errors
-const syncTime = async () => {
+// Store original Date.now ONCE to prevent stacking offsets
+const ORIGINAL_DATE_NOW = Date.now.bind(Date);
+
+// Helper: Sync time with Polymarket using SDK method
+const syncTimeWithSDK = async (client: any) => {
     try {
-        console.log("[TIME] ⏳ Syncing time with Clob...");
-        const response = await fetch("https://clob.polymarket.com/time");
-        if (response.ok) {
-            const text = await response.text();
-            // Server responds with seconds (e.g. "174123..." or JSON)
-            const serverTimeSec = parseInt(text.replace(/"/g, '').trim());
-            console.log(`[TIME] 📥 Server Time: ${serverTimeSec} | Local: ${Math.floor(Date.now() / 1000)}`);
+        console.log("[TIME] ⏳ Syncing time with Clob SDK...");
+        const serverTimeSec = await client.getServerTime();
+        const serverTimeMs = serverTimeSec * 1000;
+        const now = ORIGINAL_DATE_NOW();
+        const offset = serverTimeMs - now;
 
-            if (!isNaN(serverTimeSec)) {
-                const serverTimeMs = serverTimeSec * 1000;
-                const now = Date.now();
-                const offset = serverTimeMs - now;
-                console.log(`[TIME] ⏱️ Offset: ${offset}ms`);
+        console.log(`[TIME] 📥 Server Time: ${serverTimeSec} | Local: ${Math.floor(now / 1000)}`);
+        console.log(`[TIME] ⏱️ Offset: ${offset}ms`);
 
-                if (Math.abs(offset) > 5000) {
-                    console.log(`[TIME] ⚠️ Adjusting local clock by ${offset}ms`);
-                    const originalNow = Date.now;
-                    Date.now = () => originalNow() + offset;
-                    console.log(`[TIME] ✅ Clock patched. New Time: ${Date.now()}`);
+        if (Math.abs(offset) > 5000) {
+            console.log(`[TIME] ⚠️ Adjusting local clock by ${offset}ms`);
+
+            // Deep patch Date constructor to handle `new Date()` calls
+            const OriginalDate = Date;
+
+            // @ts-ignore
+            global.Date = class extends OriginalDate {
+                constructor(...args: any[]) {
+                    if (args.length === 0) {
+                        // return new OriginalDate(ORIGINAL_DATE_NOW() + offset);
+                        super(ORIGINAL_DATE_NOW() + offset);
+                    } else {
+                        // @ts-ignore
+                        super(...args);
+                    }
+                }
+
+                static now() {
+                    return ORIGINAL_DATE_NOW() + offset;
+                }
+
+                // Proxy other static methods
+                static parse(s: string) { return OriginalDate.parse(s); }
+                static UTC(...args: any[]) {
+                    // @ts-ignore
+                    return OriginalDate.UTC(...args);
+                }
+            };
+
+            console.log(`[TIME] ✅ Clock patched (Deep). New Time: ${new Date().toISOString()}`);
+        } else {
+            console.log(`[TIME] ✅ Time sync OK (offset < 5s)`);
+        }
+    } catch (e: any) {
+        console.warn("[TIME] SDK sync failed, falling back to manual:", e.message);
+        // Fallback to manual sync if SDK fails
+        try {
+            const response = await fetch("https://clob.polymarket.com/time");
+            if (response.ok) {
+                const text = await response.text();
+                const serverTimeSec = parseInt(text.replace(/"/g, '').trim());
+                if (!isNaN(serverTimeSec)) {
+                    const serverTimeMs = serverTimeSec * 1000;
+                    const now = ORIGINAL_DATE_NOW();
+                    const offset = serverTimeMs - now;
+                    if (Math.abs(offset) > 5000) {
+                        // Simple patch for fallback
+                        Date.now = () => ORIGINAL_DATE_NOW() + offset;
+                        console.log(`[TIME] ✅ Manual sync complete. Offset: ${offset}ms`);
+                    }
                 }
             }
-        } else {
-            console.warn("[TIME] ❌ Failed to fetch time, Status:", response.status);
+        } catch (fallbackError: any) {
+            console.warn("[TIME] Manual sync also failed:", fallbackError.message);
         }
-    } catch (e: any) { console.warn("[TIME] Sync failed:", e.message); }
+    }
 };
 
 // Helper: Fetch real-time price via WebSocket
@@ -264,89 +308,131 @@ const getPriceViaWS = (tokenId: string, side: "BUY" | "SELL"): Promise<number | 
     });
 };
 
-export const place_trade = async (trade: TradeParams) => {
-    // Lazy import to avoid circular dep issues
-    const { ClobClient } = await import("@polymarket/clob-client");
-
-    const user = await prisma.user.findUnique({
-        where: { id: trade.userId },
-    });
-
-    if (!user) throw new Error("User wallet not found");
-
-    console.log(`[REAL TRADE] 📊 Placing trade for ${trade.userId} on market ${trade.marketId}`);
-
-    let clobClient: any;
-
+// Helper: Ensure Proxy has allowance
+const ensureProxyAllowance = async (user: any, eoaWallet: ethers.Wallet, provider: any) => {
+    const { ClobClient, AssetType } = await import("@polymarket/clob-client");
     try {
-        const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
+        if (!user.scwAddress) return;
 
-        if (user.scwOwnerPrivateKey) {
-            const privateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, user.id);
-            const eoaWallet = new ethers.Wallet(privateKey, provider);
-            const useProxy = !!user.scwAddress;
-            const proxyAddress = user.scwAddress;
+        console.log(`[ALLOWANCE] 🔍 Checking Proxy Allowance...`);
+        const CTF_EXCHANGE = "0x4bfb41d5b3570defd30c3975a9c70d529202fcae";
+        const BRIDGED_USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+        const usdc = new ethers.Contract(BRIDGED_USDC, ["function allowance(address, address) view returns (uint256)"], provider);
 
-            console.log(`[TRADE] 🔹 Trading Mode: ${useProxy ? `PROXY (${proxyAddress})` : `EOA (${eoaWallet.address})`}`);
+        const allowProxy = await usdc.allowance(user.scwAddress, CTF_EXCHANGE);
+        console.log(`[ALLOWANCE] 🔓 Current: ${ethers.utils.formatUnits(allowProxy, 6)} USDC`);
 
-            // Sync Time before creating client/requests
-            await syncTime();
+        if (allowProxy.lt(ethers.utils.parseUnits("1000", 6))) { // < 1000 USDC? Approve.
+            console.log("⚠️ Proxy has insufficient allowance! Enabling trading...");
 
-            // Ensure API Keys exist (Create if missing)
-            if (!user.apiKey || !user.apiSecret || !user.apiPassphrase) {
-                console.log(`[TRADE] 🔑 Creating NEW API keys...`);
-                const tempClient = new ClobClient(
-                    "https://clob.polymarket.com",
-                    137,
-                    eoaWallet
-                );
-
-                let keys: any;
-                try {
-                    console.log(`[TRADE] 🔑 Attempting to DERIVE existing API keys...`);
-                    keys = await tempClient.deriveApiKey();
-                } catch (e: any) {
-                    console.warn("[TRADE] Derive failed, falling back to CREATE:", e.message);
-                }
-
-                if (!keys) {
-                    try {
-                        console.log(`[TRADE] 🔑 Creating NEW API keys...`);
-                        keys = await tempClient.createApiKey();
-                    } catch (e) {
-                        console.error("[TRADE] Key creation failed:", e);
-                        throw e;
-                    }
-                }
-
-                if (!keys?.key) throw new Error("Failed to obtain API keys");
-
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: { apiKey: keys.key, apiSecret: keys.secret, apiPassphrase: keys.passphrase }
-                });
-                user.apiKey = keys.key;
-                user.apiSecret = keys.secret;
-                user.apiPassphrase = keys.passphrase;
-            }
-
-            // Initialize Client
-            clobClient = new ClobClient(
+            const clobClient = new ClobClient(
                 "https://clob.polymarket.com",
                 137,
                 eoaWallet,
-                {
-                    key: user.apiKey || "",
-                    secret: user.apiSecret || "",
-                    passphrase: user.apiPassphrase || ""
-                },
-                useProxy ? 2 : 0,
-                useProxy ? proxyAddress || undefined : undefined
+                user.apiKey && user.apiSecret && user.apiPassphrase ? {
+                    key: user.apiKey,
+                    secret: user.apiSecret,
+                    passphrase: user.apiPassphrase
+                } : undefined
             );
 
+            await syncTimeWithSDK(clobClient);
+
+            const txHash = await clobClient.updateBalanceAllowance({ asset_type: AssetType.COLLATERAL });
+            console.log("✅ Allowance Updated! Tx:", txHash);
         } else {
-            throw new Error("No Private Key found for user.");
+            console.log(`[ALLOWANCE] ✅ Allowance sufficient.`);
         }
+    } catch (e: any) {
+        console.warn("[ALLOWANCE] Check failed:", e.message);
+    }
+};
+
+export const place_trade = async (trade: TradeParams) => {
+    const { ClobClient } = await import("@polymarket/clob-client");
+    let clobClient: any;
+    try {
+        console.log(`[TRADE] 🔵 REQUEST: ${trade.side} ${trade.amount} on ${trade.marketId} for ${trade.userId}`);
+
+        const user = await prisma.user.findUnique({ where: { id: trade.userId } });
+        if (!user || !user.scwOwnerPrivateKey) throw new Error("User or Key not found");
+
+        const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
+        const privateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, user.id);
+        const eoaWallet = new ethers.Wallet(privateKey, provider);
+
+        // Auto-Check Allowance BEFORE trading
+        if (user.scwAddress) {
+            await ensureProxyAllowance(user, eoaWallet, provider);
+        }
+
+        const useProxy = !!user.scwAddress;
+        const proxyAddress = user.scwAddress;
+
+
+        console.log(`[TRADE] 🔹 Trading Mode: ${useProxy ? `PROXY (${proxyAddress})` : `EOA (${eoaWallet.address})`}`);
+
+        // Create temp client for time sync and API key operations
+        const tempClient = new ClobClient(
+            "https://clob.polymarket.com",
+            137,
+            eoaWallet
+        );
+
+        // Sync Time using SDK method
+        await syncTimeWithSDK(tempClient);
+
+        // Ensure API Keys exist (Create if missing)
+        if (!user.apiKey || !user.apiSecret || !user.apiPassphrase) {
+            console.log(`[TRADE] 🔑 Creating NEW API keys...`);
+
+            let keys: any;
+            try {
+                console.log(`[TRADE] 🔑 Attempting to DERIVE existing API keys...`);
+                keys = await tempClient.deriveApiKey();
+            } catch (e: any) {
+                console.warn("[TRADE] Derive failed (caught exception), falling back to CREATE:", e.message);
+            }
+
+            // Treat invalid keys (missing key property) as failure too
+            if (!keys || !keys.key) {
+                if (keys && !keys.key) console.warn("[TRADE] Derived keys irrelevant/invalid, falling back to CREATE");
+
+                try {
+                    console.log(`[TRADE] 🔑 Creating NEW API keys...`);
+                    keys = await tempClient.createApiKey();
+                } catch (e) {
+                    console.error("[TRADE] Key creation failed:", e);
+                    throw e;
+                }
+            }
+
+            if (!keys?.key) throw new Error("Failed to obtain API keys");
+
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { apiKey: keys.key, apiSecret: keys.secret, apiPassphrase: keys.passphrase }
+            });
+            user.apiKey = keys.key;
+            user.apiSecret = keys.secret;
+            user.apiPassphrase = keys.passphrase;
+        }
+
+        // Initialize Client
+        clobClient = new ClobClient(
+            "https://clob.polymarket.com",
+            137,
+            eoaWallet,
+            {
+                key: user.apiKey || "",
+                secret: user.apiSecret || "",
+                passphrase: user.apiPassphrase || ""
+            },
+            useProxy ? 2 : 0,
+            useProxy ? proxyAddress || undefined : undefined
+        );
+
+
 
         // 2. Resolve Token ID
         console.log(`[TRADE] Resolving Token ID: ${trade.marketId}`);
@@ -434,12 +520,12 @@ export const place_trade = async (trade: TradeParams) => {
         let tickSize = "0.01";
         try {
             // @ts-ignore
-            const ts = await clobClient.getTickSize(assetTokenId);
+            const ts = await clobClient.getTickSize(assetTokenId!);
             if (ts?.minimum_tick_size) tickSize = ts.minimum_tick_size.toString();
         } catch (e) { }
 
         const order = await clobClient.createOrder({
-            tokenID: assetTokenId,
+            tokenID: assetTokenId!,
             price: finalPrice!.toString(),
             side: side,
             size: quantity.toString(),
@@ -573,7 +659,14 @@ export const close_position = async (userId: string, marketId: string, outcome: 
         const signer = new ethers.Wallet(privateKey, provider);
         const eoaWallet = signer;
 
-        await syncTime();
+        // Create temp client for time sync
+        const tempClient = new ClobClient(
+            "https://clob.polymarket.com",
+            137,
+            eoaWallet
+        );
+
+        await syncTimeWithSDK(tempClient);
 
         // Check keys
         if (!user.apiKey || !user.apiPassphrase || !user.apiSecret) {

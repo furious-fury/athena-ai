@@ -30,28 +30,39 @@ export class MarketIntelligence {
         `).join("\n");
 
         const prompt = `
-        You are a top-tier Financial Analyst AI.
+        You are a top-tier Financial Analyst AI specializing in prediction markets and speculative trading.
         
         INPUT DATA:
         ${newsContext}
 
         TASK:
-        Identify any SIGNIFICANT market-moving events from the news above.
-        Ignore noise, focus on hard data (rate cuts, election results, regulatory approvals, hacks, earnings).
+        Identify ANY potentially tradeable events from the news above. Be AGGRESSIVE and SPECULATIVE.
+        
+        Look for:
+        - Hard catalysts: rate cuts, election results, regulatory approvals, hacks, earnings
+        - Soft signals: trending coins, new tech launches, political developments, market sentiment shifts
+        - Crypto-specific: exchange listings, protocol upgrades, whale movements, adoption news
+        - Tech trends: AI breakthroughs, product launches, funding rounds
+        
+        For prediction markets, even MODERATE news can create trading opportunities if it relates to:
+        - Cryptocurrency prices or adoption
+        - Political events or elections  
+        - Tech company performance
+        - Economic indicators
         
         OUTPUT format (JSON Array):
         [
             {
                 "headline": "Short summary of the event",
-                "marketTopic": "Main topic (e.g. Bitcoin, Fed, US Election)",
+                "marketTopic": "Main topic (e.g. Bitcoin, Fed, US Election, AI)",
                 "direction": "BULLISH" | "BEARISH" | "NEUTRAL",
-                "confidence": number (0-100, be conservative),
-                "reasoning": "Why this moves the market",
+                "confidence": number (0-100, be LIBERAL with 20-50% range for speculative plays),
+                "reasoning": "Why this could move prediction markets",
                 "relevantTickers": ["BTC", "ETH", etc]
             }
         ]
 
-        Return ONLY standard JSON. If no significant events, return [].
+        Return ONLY standard JSON. If truly nothing is relevant, return [].
         `;
 
         try {
@@ -91,10 +102,22 @@ export class MarketIntelligence {
                 logger.error({ jsonStr }, "Failed to parse LLM JSON response");
             }
 
-            // Filter for high confidence only - LOWERED to 40 to let Degen agents decide
-            const highConfidenceSignals = signals.filter(s => s.confidence > 40);
+            // Log ALL signals for debugging (even low confidence)
+            if (signals.length > 0) {
+                logger.info(`🧠 AI Analysis Results: Found ${signals.length} total signals`);
+                signals.forEach((s, idx) => {
+                    logger.info(`   [${idx + 1}] ${s.confidence}% confidence - ${s.direction} on ${s.marketTopic}`);
+                    logger.info(`       Headline: ${s.headline}`);
+                    logger.info(`       Reasoning: ${s.reasoning}`);
+                });
+            } else {
+                logger.info(`🧠 AI Analysis: No signals detected in this batch.`);
+            }
 
-            logger.info(`🧠 Intelligence found ${highConfidenceSignals.length} high-confidence signals.`);
+            // Filter for signals above threshold - LOWERED to 20% for HIGH risk agents
+            const highConfidenceSignals = signals.filter(s => s.confidence > 20);
+
+            logger.info(`🧠 Intelligence found ${highConfidenceSignals.length} signals above 20% confidence threshold.`);
             return highConfidenceSignals;
 
         } catch (err) {

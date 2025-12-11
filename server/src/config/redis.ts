@@ -17,9 +17,12 @@ client.on("connect", () => console.log("✅ Redis connected"));
 client.on("error", (err) => console.error("❌ Redis error:", err));
 
 // Immediately connect and guarantee it's ready
-export const redis: RedisClientType = await client.connect()
-    .then(() => client)
-    .catch((err) => {
-        console.error("Failed to connect Redis:", err);
-        process.exit(1);
-    });
+// Try to connect, but don't crash if it fails (allows running scripts/tests without Redis)
+try {
+    await client.connect();
+} catch (err) {
+    console.warn("⚠️ Redis connection failed. Disconnecting to prevent retry loop.");
+    await client.disconnect(); // Stop retrying
+}
+
+export const redis = client;

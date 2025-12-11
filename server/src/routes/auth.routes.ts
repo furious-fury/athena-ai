@@ -48,6 +48,7 @@ authRouter.post("/login", async (req, res) => {
                         systemPrompt: generateSystemPrompt(def.name, "Athena Created", def.risk),
                         llmProvider: "OPENAI",
                         llmModel: "gpt-5-nano",
+                        pollingInterval: 120, // 2 minutes
                         isActive: false
                     }
                 });

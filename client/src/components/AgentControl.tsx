@@ -25,6 +25,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
     const [name, setName] = useState("");
     const [riskProfile, setRiskProfile] = useState("MEDIUM");
     const [isOpen, setIsOpen] = useState(false);
+    const [deleteAgentId, setDeleteAgentId] = useState<string | null>(null);
 
     const handleToggle = (agentId: string, isRunning: boolean) => {
         if (!dbUserId) return alert("Please wait for login...");
@@ -32,8 +33,14 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
     };
 
     const handleDelete = (agentId: string) => {
-        if (!confirm("Are you sure you want to delete this agent? This action is irreversible.")) return;
-        deleteAgent(agentId);
+        setDeleteAgentId(agentId);
+    };
+
+    const confirmDelete = () => {
+        if (deleteAgentId) {
+            deleteAgent(deleteAgentId);
+            setDeleteAgentId(null);
+        }
     };
 
     const handleCreate = () => {
@@ -107,6 +114,32 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                         </div>
                         <Button onClick={handleCreate} className="w-full bg-[#3A7BFF] text-white hover:bg-[#3A7BFF]/90 font-bold shadow-lg shadow-blue-900/20 mt-6">
                             Deploy Agent
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Agent Confirmation Dialog */}
+            <Dialog open={deleteAgentId !== null} onOpenChange={(open) => !open && setDeleteAgentId(null)}>
+                <DialogContent className="bg-panel border-none text-white shadow-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-500">Delete Agent</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            Are you sure you want to delete this agent? This action is irreversible and all agent data will be permanently lost.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-3 pt-4">
+                        <Button
+                            onClick={() => setDeleteAgentId(null)}
+                            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={confirmDelete}
+                            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold"
+                        >
+                            Delete Agent
                         </Button>
                     </div>
                 </DialogContent>

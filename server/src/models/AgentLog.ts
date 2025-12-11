@@ -66,7 +66,7 @@ export class AgentLog {
     static async create(params: {
         agentId: string;
         userId: string;
-        type: 'ANALYSIS' | 'DECISION' | 'TRADE' | 'RISK_BLOCK' | 'ERROR';
+        type: 'ANALYSIS' | 'DECISION' | 'TRADE' | 'RISK_BLOCK' | 'ERROR' | 'DATA_FETCH' | 'RISK_ASSESSMENT';
         message: string;
         metadata?: any;
     }) {

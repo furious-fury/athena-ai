@@ -96,6 +96,10 @@ function App() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Complete Your Setup</h2>
             <p className="text-gray-400">Import your Polymarket Credentials to enable autonomous trading.</p>
+            <div className="mt-4 flex items-center justify-center gap-2 text-emerald-400 bg-emerald-500/10 py-2 px-4 rounded-full border border-emerald-500/20 max-w-fit mx-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span className="text-sm font-medium">End-to-End Encrypted & Secure Storage</span>
+            </div>
           </div>
           <UserSettings dbUserId={dbUserId} />
         </div>

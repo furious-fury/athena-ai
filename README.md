@@ -43,10 +43,32 @@ npm run dev
 
 ## 🛠️ Features
 
-- **Autonomous Agents**: Deploy and control AI agents that trade based on configurable strategies.
+### Core Trading Capabilities
+- **Autonomous Agents**: Deploy and control AI agents that trade based on news-driven strategies and configurable risk profiles.
 - **Real-time Monitoring**: Watch agent activities, trade logs, and performance metrics in real-time.
-- **Risk Management**: Automated risk checks and portfolio exposure analysis.
+- **Risk Management**: Automated risk checks, portfolio exposure analysis, and trade cooldown enforcement.
 - **Actionable Insights**: Market exploration and data visualization.
+
+### Intelligence Layer
+- **News-Driven Trading**: Agents analyze real-time news from 14 curated sources to identify market-moving events.
+- **Multi-Source Data Aggregation**:
+  - **Crypto (5 sources)**: CoinDesk, CoinTelegraph, Decrypt, The Block, Bitcoin Magazine
+  - **Tech (4 sources)**: TechCrunch, Wired, The Verge, Ars Technica
+  - **Finance (3 sources)**: CNBC International, BBC World, Al Jazeera
+  - **Politics (3 sources)**: Politico, Politico EU, NYT Politics
+  - **Market Data**: Live CoinGecko API integration for trending cryptocurrencies
+- **AI Signal Processing**: LLM-powered analysis (OpenAI/Gemini) extracts high-confidence trading signals with reasoning.
+- **Smart Market Matching**: Automatically searches Polymarket for relevant prediction markets based on detected signals.
+
+### Enhanced Activity Logging
+- **Detailed Event Tracking**: Logs capture data fetching, risk assessments, and decision-making processes.
+- **Visual Log Types**: Distinct UI indicators for different event types (📡 Data Fetch, 🛡️ Risk Assessment, 📝 Decisions).
+- **AI Reasoning Display**: Collapsible sections show the AI's thought process behind each trade decision.
+
+### Security & Privacy
+- **End-to-End Encryption**: User private keys encrypted at rest using AES-256-GCM with HKDF key derivation.
+- **Per-User Key Isolation**: Each user's data is cryptographically isolated with unique derived keys.
+- **Secure Key Management**: Master encryption key stored in environment variables, never exposed to clients.
 
 ## 📚 Documentation
 
@@ -54,3 +76,4 @@ Detailed documentation for each part of the stack can be found in their respecti
 
 - [Client Documentation](./client/README.md)
 - [Server Documentation](./server/README.md)
+

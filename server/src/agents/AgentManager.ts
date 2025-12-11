@@ -17,7 +17,7 @@ export class AgentManager {
             data: { isActive: true }
         });
 
-        const loop = new AgentLoop(userId, agentId);
+        const loop = new AgentLoop(agentId, userId);
         const interval = (agent.pollingInterval || 300) * 1000;
         loop.start(interval);
         this.activeLoops.set(agentId, loop);
@@ -91,7 +91,7 @@ export class AgentManager {
 
             for (const agent of activeAgents) {
                 if (!this.activeLoops.has(agent.id)) {
-                    const loop = new AgentLoop(agent.userId, agent.id);
+                    const loop = new AgentLoop(agent.id, agent.userId);
                     const interval = (agent.pollingInterval || 300) * 1000;
                     loop.start(interval);
                     this.activeLoops.set(agent.id, loop);

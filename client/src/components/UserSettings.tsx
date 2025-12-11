@@ -238,7 +238,15 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
                                 <p className="text-sm text-gray-400 leading-relaxed">
                                     To enable autonomous trading, you must import your existing Polymarket Proxy wallet and its controlling Private Key.
                                 </p>
-
+                                <div className="p-3 bg-blue-500/10 rounded border border-blue-500/20 mb-4 flex gap-3">
+                                    <ShieldAlert className="text-blue-400 shrink-0 mt-0.5" size={16} />
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-blue-300">Security Guarantee</p>
+                                        <p className="text-xs text-blue-200/80 leading-relaxed">
+                                            Your Private Key is encrypted using <strong>AES-256-GCM</strong> with a user-specific key derived via <strong>HKDF</strong>. It is never stored in plain text and is only decrypted in memory for autonomously signing transactions by the agents.
+                                        </p>
+                                    </div>
+                                </div>
                                 <div className="space-y-3 p-4 bg-black/20 rounded-lg border border-white/5">
                                     <div className="space-y-1">
                                         <label className="text-xs font-medium text-gray-400">Owner Private Key</label>

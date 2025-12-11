@@ -16,17 +16,18 @@ interface AgentDecision {
 }
 
 export class AgentLoop {
-    private agentId: string;
-    private userId: string;
-    private running: boolean = false;
-    private interval: NodeJS.Timeout | null = null;
+    agentId: string;
+    userId: string;
+    running: boolean = false;
+    isProcessing: boolean = false; // Lock to prevent concurrent ticks
+    interval?: NodeJS.Timeout;
 
-    constructor(userId: string, agentId: string) {
-        this.userId = userId;
+    constructor(agentId: string, userId: string) {
         this.agentId = agentId;
+        this.userId = userId;
     }
 
-    start(intervalMs: number = 60000) {
+    start(intervalMs: number = 120000) {
         if (this.running) return;
         this.running = true;
 
@@ -44,6 +45,14 @@ export class AgentLoop {
     }
 
     private async tick() {
+        // Skip if previous tick is still processing
+        if (this.isProcessing) {
+            logger.warn(`⚠️ Skipping tick for ${this.agentId} - previous tick still processing`);
+            return;
+        }
+
+        this.isProcessing = true;
+
         try {
             // 1. Load Agent from DB (Fresh state every tick)
             const agent = await prisma.agent.findUnique({ where: { id: this.agentId } });
@@ -77,13 +86,52 @@ export class AgentLoop {
                 return;
             }
 
+            // Log Data Fetch with source breakdown
+            const sourceBreakdown = rawNews.reduce((acc: Record<string, number>, item) => {
+                acc[item.source] = (acc[item.source] || 0) + 1;
+                return acc;
+            }, {});
+
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "DATA_FETCH",
+                message: `Ingested ${cleanNews.length} news items from ${Object.keys(sourceBreakdown).length} sources.`,
+                metadata: {
+                    sourceCount: rawNews.length,
+                    cleanCount: cleanNews.length,
+                    topHeadline: cleanNews[0]?.title,
+                    sources: sourceBreakdown
+                }
+            });
+
             // 3. Analyze News for Signals
             const { MarketIntelligence } = await import("../services/analysis/MarketIntelligence.js");
             const signals = await MarketIntelligence.analyze(cleanNews);
 
+            // Log AI Analysis Results (all signals, even low confidence)
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "ANALYSIS",
+                message: signals.length > 0
+                    ? `Agent detected ${signals.length} signal(s) from news analysis.`
+                    : "Agent found no actionable signals in current news cycle.",
+                metadata: {
+                    totalSignals: signals.length,
+                    signals: signals.map(s => ({
+                        confidence: s.confidence,
+                        direction: s.direction,
+                        topic: s.marketTopic,
+                        headline: s.headline,
+                        reasoning: s.reasoning
+                    }))
+                }
+            });
+
             if (signals.length === 0) {
-                logger.info("News analyzed, but no high-confidence signals found.");
-                return;
+                logger.info("News analyzed, but no high-confidence signals found. Will scan active markets instead.");
+                // Don't return - continue to active market scanning
             }
 
             // 4. Find Market Opportunities from Signals
@@ -91,8 +139,28 @@ export class AgentLoop {
             const opportunities = await SignalProcessor.processSignals(signals);
 
             if (opportunities.length === 0) {
-                logger.info("Signals found, but no matching Polymarket markets available.");
-                return;
+                logger.info("Signals found, but no matching Polymarket markets available. Will scan active markets instead.");
+
+                // Log the failed market search
+                await AgentLog.create({
+                    agentId: this.agentId,
+                    userId: this.userId,
+                    type: "ANALYSIS",
+                    message: `Searched for markets matching ${signals.length} signal(s), but found no tradeable opportunities on Polymarket.`,
+                    metadata: {
+                        signalsDetected: signals.length,
+                        searchedTopics: signals.map(s => s.marketTopic),
+                        reason: "No matching prediction markets available",
+                        signals: signals.map(s => ({
+                            confidence: s.confidence,
+                            direction: s.direction,
+                            topic: s.marketTopic,
+                            headline: s.headline,
+                            reasoning: s.reasoning
+                        }))
+                    }
+                });
+                // Don't return - continue to active market scanning
             }
 
             // Log Discovery
@@ -101,33 +169,174 @@ export class AgentLoop {
                 userId: this.userId,
                 type: "ANALYSIS",
                 message: `Found ${opportunities.length} trade opportunities from news.`,
-                metadata: { signals: signals.map(s => s.headline), topOpp: opportunities[0]?.market.question }
+                metadata: {
+                    totalSignals: signals.length,
+                    totalOpportunities: opportunities.length,
+                    signals: signals.map(s => ({
+                        confidence: s.confidence,
+                        direction: s.direction,
+                        topic: s.marketTopic,
+                        headline: s.headline,
+                        reasoning: s.reasoning
+                    })),
+                    topOpp: opportunities[0]?.market.question
+                }
             });
 
-            // 5. Select Best Opportunity (Process Top 1 for now to conserve tokens/funds)
-            const bestOpp = opportunities[0];
+            // 5. ACTIVE MARKET SCANNING - Analyze 5 random markets from top 20
+            logger.info("📊 Scanning active markets for trading opportunities...");
+            let activeTradeOpps: any[] = [];
+
+            try {
+                const { ActiveMarketScanner } = await import("../services/analysis/ActiveMarketScanner.js");
+                const activeMarketOpps = await ActiveMarketScanner.scanActiveMarkets(
+                    agent.systemPrompt,
+                    agent.llmProvider,
+                    agent.llmModel || undefined,
+                    agent.riskProfile, // Pass risk profile for aggressive trading
+                    5
+                );
+
+                // Convert active market opportunities to TradeOpportunity format
+                activeTradeOpps = activeMarketOpps
+                    .filter(opp => opp.action === "TRADE")
+                    .map(opp => {
+                        const direction: "BULLISH" | "BEARISH" | "NEUTRAL" = opp.side === "BUY" ? "BULLISH" : "BEARISH";
+                        return {
+                            market: opp.market,
+                            signal: {
+                                headline: `Market Analysis: ${opp.market.question}`,
+                                confidence: opp.confidence,
+                                direction: direction,
+                                marketTopic: "Active Market",
+                                reasoning: opp.reasoning,
+                                relevantTickers: []
+                            },
+                            action: (opp.side || "BUY") as "BUY" | "SELL",
+                            outcome: (opp.outcome || "YES") as "YES" | "NO",
+                            confidence: opp.confidence,
+                            ev: opp.ev
+                        };
+                    });
+
+                logger.info(`📊 Active market scan complete: ${activeTradeOpps.length} tradeable opportunities found`);
+
+            } catch (error: any) {
+                logger.error({ error }, `❌ Active market scanning failed: ${error.message}`);
+                activeTradeOpps = []; // Continue with empty array
+            }
+
+            // Log active market scanning results
+            logger.info(`📊 About to create ANALYSIS log for ${activeTradeOpps.length} opportunities`);
+
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "ANALYSIS",
+                message: `Scanned 5 active markets, found ${activeTradeOpps.length} tradeable opportunities.`,
+                metadata: {
+                    strategy: "Active Market Scan",
+                    marketsAnalyzed: 5,
+                    tradeableOpportunities: activeTradeOpps.length,
+                    opportunities: activeTradeOpps.map(opp => ({
+                        market: opp.market.question,
+                        confidence: opp.confidence,
+                        action: opp.action,
+                        outcome: opp.outcome,
+                        reasoning: opp.signal.reasoning,
+                        ev: opp.ev
+                    }))
+                }
+            });
+
+            logger.info(`📊 ANALYSIS log created successfully`);
+
+            // 6. Merge opportunities from both strategies
+            const allOpportunities = [...opportunities, ...activeTradeOpps];
+            allOpportunities.sort((a, b) => b.ev - a.ev);
+
+            logger.info(`📊 Total opportunities: ${allOpportunities.length} (${opportunities.length} news + ${activeTradeOpps.length} active market)`);
+
+            if (allOpportunities.length === 0) {
+                logger.info("No tradeable opportunities found from either strategy.");
+                return;
+            }
+
+            // 7. Select Best Opportunity
+            const bestOpp = allOpportunities[0];
             if (!bestOpp) return;
 
+            const strategy = opportunities.includes(bestOpp) ? "News-Driven" : "Active Market";
+            logger.info(`🎯 Best opportunity from ${strategy} strategy`);
+
             const market = bestOpp.market;
+
+            // Log strategy selection
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "ANALYSIS",
+                message: `Selected best opportunity from ${strategy} strategy: "${market.question}"`,
+                metadata: {
+                    strategy: strategy,
+                    totalOpportunities: allOpportunities.length,
+                    newsOpportunities: opportunities.length,
+                    activeMarketOpportunities: activeTradeOpps.length,
+                    selectedMarket: market.question,
+                    confidence: bestOpp.confidence,
+                    ev: bestOpp.ev
+                }
+            });
 
             logger.info(`🎯 Targeting Market: "${market.question}" based on signal: "${bestOpp.signal.headline}"`);
 
             // 6. Final Decision Logic (Re-using context builder)
-            // Get User Stats
+            // Get User Stats - Use LIVE balance from Polymarket, not stale DB balance
             const exposure = await Portfolio.getUserExposure(this.userId);
             const user = await prisma.user.findUnique({
                 where: { id: this.userId },
                 select: { maxTradeAmount: true, maxTotalExposure: true, balance: true }
             });
 
-            const currentExposure = exposure.exposure * (user?.balance || 0);
+            // Fetch live balance from Polymarket
+            const { PortfolioService } = await import("../services/PortfolioService.js");
+            const liveBalanceObj = await PortfolioService.getUserBalance(this.userId);
+            const liveBalance = parseFloat(liveBalanceObj.usdc || "0");
+
+            logger.info(`💰 Live Balance: $${liveBalance} (DB shows: $${user?.balance || 0})`);
+
+            const currentExposure = exposure.exposure * liveBalance;
             const maxBudget = user?.maxTotalExposure || 100;
 
             // Check budget before expensive LLM call
             if (currentExposure >= maxBudget) {
                 logger.warn("Max exposure reached. Skipping trade.");
+                await AgentLog.create({
+                    agentId: this.agentId,
+                    userId: this.userId,
+                    type: "RISK_BLOCK",
+                    message: `Maximum exposure limit reached ($${currentExposure.toFixed(2)} / $${maxBudget}). Trade blocked.`,
+                    metadata: { currentExposure, maxBudget, market: market.question }
+                });
                 return;
             }
+
+            // Log that we're proceeding with decision-making
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "DECISION",
+                message: `Evaluating trade for market: "${market.question}"`,
+                metadata: {
+                    marketId: market.id,
+                    signal: bestOpp.signal.headline,
+                    confidence: bestOpp.signal.confidence,
+                    direction: bestOpp.signal.direction,
+                    currentExposure: currentExposure.toFixed(2),
+                    availableBudget: (maxBudget - currentExposure).toFixed(2),
+                    liveBalance: liveBalance.toFixed(2)
+                }
+            });
 
             // Construct Prompt for Final Decision (Validate Signal vs Market)
             const provider = LLMRouter.getProvider(agent.llmProvider, agent.llmModel || undefined);
@@ -141,7 +350,7 @@ export class AgentLoop {
             DIRECTION: ${bestOpp.signal.direction}
 
             PORTFOLIO:
-            - Balance: $${user?.balance}
+            - Balance: $${liveBalance}
             - Max Trade: $${user?.maxTradeAmount}
 
             AGENT PROFILE:
@@ -160,6 +369,12 @@ export class AgentLoop {
             Example: Signal "Bitcoin Bullish" + Market "Will BTC hit 100k?" -> YES.
             Example: Signal "Bitcoin Bullish" + Market "Will BTC crash?" -> NO.
 
+            IMPORTANT CONSTRAINTS:
+            - Your trade amount MUST be between $1 and $${Math.min(liveBalance, user?.maxTradeAmount || 100)}
+            - You have $${liveBalance} available balance
+            - Maximum single trade is $${user?.maxTradeAmount || 100}
+            - DO NOT suggest amounts higher than these limits
+
             OUTPUT JSON:
             { "action": "TRADE" | "HOLD", "side": "BUY", "outcome": "YES" | "NO", "amount": number, "reason": "string" }
             `;
@@ -172,7 +387,7 @@ export class AgentLoop {
 
             // ... (Rest of execution logic is same) ...
 
-            await this.executeDecision(agent, decision, market);
+            await this.executeDecision(agent, decision, market, currentExposure);
 
         } catch (err) {
             logger.error({ err }, `❌ Error in AgentLoop for ${this.agentId}`);
@@ -180,7 +395,7 @@ export class AgentLoop {
     }
 
     // Helper to keep tick() clean
-    private async executeDecision(agent: any, decision: AgentDecision, market: any) {
+    private async executeDecision(agent: any, decision: AgentDecision, market: any, currentExposure: number) {
         // Log Decision
         const marketQuestion = `"${market.question}"`;
         const amountStr = decision.amount ? `$${decision.amount}` : "default amount";
@@ -218,26 +433,92 @@ export class AgentLoop {
                     agentId: this.agentId,
                     userId: this.userId,
                     type: "RISK_BLOCK",
-                    message: `Trade blocked: ${riskCheck.reason}`,
+                    message: `Risk Block: ${riskCheck.reason}`,
                     metadata: { trade: decision, riskCheck }
                 });
                 return;
             }
 
-            // Enqueue the job for execution
-            await PortfolioRedis.enqueueAgentJob(this.agentId, {
-                userId: this.userId,
+            // Log Successful Risk Assessment
+            await AgentLog.create({
                 agentId: this.agentId,
-                marketId: market.id,
-                marketQuestion: market.question,
-                outcome: decision.outcome || "YES",
-                amount: tradeAmount,
-                side: decision.side || "BUY",
+                userId: this.userId,
+                type: "RISK_ASSESSMENT",
+                message: "Risk checks passed. Trade approved.",
+                metadata: {
+                    check: "PASSED",
+                    tradeAmount,
+                    exposure: currentExposure
+                }
             });
 
-            logger.info(`📤 Job enqueued for agent ${this.agentId}`);
+
+            // Execute trade directly (no queue)
+            const { TradeService } = await import("../services/TradeService.js");
+
+            try {
+                const tradeRequest = {
+                    userId: this.userId,
+                    agentId: this.agentId,
+                    marketId: market.id,
+                    marketQuestion: market.question,
+                    outcome: decision.outcome || "YES",
+                    amount: tradeAmount,
+                    side: decision.side || "BUY",
+                };
+
+                logger.info(`� Executing trade: ${decision.side} ${decision.outcome} ($${tradeAmount}) on "${market.question}"`);
+
+                const result = await TradeService.executeAgentTrade(tradeRequest);
+
+                // Record trade for cooldown tracking
+                const { RiskManager } = await import("../services/RiskManager.js");
+                await RiskManager.recordTrade(this.userId);
+
+                logger.info(`✅ Trade executed successfully: ${JSON.stringify(result)}`);
+
+                // Log successful trade execution
+                await AgentLog.create({
+                    agentId: this.agentId,
+                    userId: this.userId,
+                    type: "TRADE",
+                    message: `🚀 Trade executed: ${decision.side} ${decision.outcome} ($${tradeAmount}) on "${market.question}"`,
+                    metadata: {
+                        status: "EXECUTED",
+                        marketId: market.id,
+                        marketQuestion: market.question,
+                        side: decision.side,
+                        outcome: decision.outcome,
+                        amount: tradeAmount,
+                        result: result
+                    }
+                });
+
+            } catch (error: any) {
+                logger.error({ error }, `❌ Trade execution failed: ${error.message}`);
+
+                // Log failed trade
+                await AgentLog.create({
+                    agentId: this.agentId,
+                    userId: this.userId,
+                    type: "RISK_BLOCK",
+                    message: `Trade execution failed: ${error.message}`,
+                    metadata: {
+                        status: "FAILED",
+                        marketId: market.id,
+                        error: error.message
+                    }
+                });
+            }
         } else {
             logger.info(`💤 ${agent.name} decides to HOLD. Reason: ${decision.reason}`);
         }
+
+        // Release lock in success path
+        this.isProcessing = false;
+
+    } catch(error: any) {
+        logger.error({ error }, `❌ Error in agent tick: ${error.message}`);
+        this.isProcessing = false;
     }
-}
+} // end of executeDecision

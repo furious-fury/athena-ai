@@ -1,7 +1,6 @@
-import { useAgents } from "../lib/api";
+import { useAgents, useProxyWallet } from "../lib/api";
 import { Wallet, Activity, TrendingUp, Cpu } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProxyUSDCBalance } from "../hooks/useProxyUSDCBalance";
 
 interface StatCardProps {
     title: string;
@@ -38,9 +37,9 @@ function StatCard({ title, value, icon: Icon, subValue, subColor = "text-green-5
 }
 
 export default function DashboardStats({ userId }: { userId: string | null }) {
-    const { data: agents, isLoading: agentsLoading } = useAgents();
-    // const { data: proxyWallet } = useProxyWallet(userId || ""); // Unused now
-    const { formatted: balance, isLoading: balanceLoading } = useProxyUSDCBalance(userId);
+    const { data: agents, isLoading: agentsLoading } = useAgents(userId);
+    const { data: proxyWallet, isLoading: balanceLoading } = useProxyWallet(userId || "");
+    const balance = proxyWallet?.balance?.toFixed(2) || "0.00";
 
     // Derived Stats
     const totalAgents = agents?.length || 0;

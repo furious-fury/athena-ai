@@ -2,13 +2,9 @@ import "dotenv/config";
 import { type Hex, type Address } from "viem";
 export declare class SmartWalletService {
     /**
-     * Generates a new Pimlico Safe Account (ERC-4337).
-     * Returns the address and the private key of the owner.
+     * [DEPRECATED/REMOVED] createOneClickAccount
+     * We now Import wallets instead of generating them.
      */
-    static createOneClickAccount(): Promise<{
-        address: `0x${string}`;
-        privateKey: `0x${string}`;
-    }>;
     /**
      * Sends a gasless transaction using the Pimlico Paymaster.
      */

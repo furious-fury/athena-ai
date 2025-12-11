@@ -26,3 +26,15 @@ portfolioRouter.get("/balance/:userId", async (req, res) => {
         res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Unknown error" });
     }
 });
+
+// GET /api/portfolio/history/:userId
+portfolioRouter.get("/history/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const history = await PortfolioService.getHistory(userId);
+        res.json({ success: true, history });
+    } catch (err) {
+        console.error("History error:", err);
+        res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Unknown error" });
+    }
+});

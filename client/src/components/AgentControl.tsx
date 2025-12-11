@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useAgents, useControlAgent, useCreateAgent, useDeleteAgent, useEnableTrading } from "../lib/api";
+import { useAgents, useControlAgent, useCreateAgent, useDeleteAgent } from "../lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Key } from "lucide-react";
-import { deriveClobApiKey } from "../lib/clobAuth";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import { Trash2 } from "lucide-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import {
     Dialog,
     DialogContent,
@@ -15,94 +14,17 @@ import {
 } from "@/components/ui/dialog"
 
 export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId: string | null, variant?: "full" | "compact" }) {
-    const { address } = useAccount();
-    const { switchChainAsync } = useSwitchChain();
-    const { data: walletClient } = useWalletClient();
+    const { publicKey } = useWallet();
 
     const { data: agents } = useAgents(dbUserId);
     const { mutate: controlAgent } = useControlAgent();
     const { mutate: createAgent } = useCreateAgent();
     const { mutate: deleteAgent } = useDeleteAgent();
-    const { mutate: enableTrading } = useEnableTrading();
+
     // Form State
     const [name, setName] = useState("");
     const [riskProfile, setRiskProfile] = useState("MEDIUM");
     const [isOpen, setIsOpen] = useState(false);
-
-    const handleEnableTrading = async () => {
-        if (!address || !dbUserId) return alert("Please login first");
-        if (!walletClient) return alert("Wallet not connected");
-
-        try {
-            // 0. Time Sync Check
-            // (Keeping user's time check logic as is, it's good practice)
-            try {
-                const timeRes = await fetch("https://clob.polymarket.com/time");
-                const serverTimeText = await timeRes.text();
-
-                let serverTime = 0;
-                if (serverTimeText.includes("{")) {
-                    const json = JSON.parse(serverTimeText);
-                    serverTime = json.time || json.timestamp;
-                } else {
-                    serverTime = parseInt(serverTimeText.replace(/"/g, ''));
-                }
-
-                if (serverTime > 0) {
-                    const localTime = Math.floor(Date.now() / 1000);
-                    const drift = localTime - serverTime;
-                    console.log("[TimeCheck] Local:", localTime, "Server:", serverTime, "Drift:", drift);
-
-                    if (Math.abs(drift) > 10) {
-                        const msg = `Your system clock is ${Math.abs(drift)} seconds ${drift < 0 ? 'behind' : 'ahead'} of Polymarket servers.\nPlease sync your computer time and try again.`;
-                        alert(msg);
-                        return; // Stop execution
-                    }
-                }
-            } catch (timeErr) {
-                console.warn("[TimeCheck] Failed to check server time:", timeErr);
-            }
-
-            // 1. Switch to Mainnet (Chain ID 1) for Auth Sorting
-            // Polymarket L1 Headers require Chain ID 1 in the domain (confirmed via inspection)
-            try {
-                await switchChainAsync({ chainId: 1 });
-            } catch (e) {
-                console.error("Network switch failed", e);
-                // Continue if already on mainnet or user rejected but we try anyway? 
-                // Better to throw or return, but let's try to proceed if it was just a rejection of an already active chain
-            }
-
-            // 2. Derive Keys using Shared Utility
-            // walletClient directly supports signing
-            const creds = await deriveClobApiKey(walletClient as any, address);
-            console.log("[ManualSign] Success! Creds:", creds);
-
-            // 3. Send to Backend
-            enableTrading({
-                userId: dbUserId,
-                apiKey: creds.apiKey,
-                apiSecret: creds.secret,
-                apiPassphrase: creds.passphrase,
-                proxyWallet: address || ""
-            }, {
-                onSuccess: () => {
-                    alert("Trading Enabled! 🚀");
-                    // Switch back to Polygon
-                    switchChainAsync({ chainId: 137 }).catch(console.error);
-                },
-                onError: (err) => {
-                    alert("Failed: " + err.message)
-                    // Attempt to switch back even on failure
-                    switchChainAsync({ chainId: 137 }).catch(console.error);
-                }
-            });
-
-        } catch (e: any) {
-            console.error(e);
-            alert("Error: " + e.message);
-        }
-    }
 
     const handleToggle = (agentId: string, isRunning: boolean) => {
         if (!dbUserId) return alert("Please wait for login...");
@@ -137,21 +59,16 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                         <p className="text-sm text-text-secondary">Manage and monitor your autonomous trading agents.</p>
                     </div>
                     <div className="flex gap-3">
-                        <Button
-                            variant="outline"
-                            className="bg-black/20 border-green-500/50 text-green-500 hover:bg-green-500/10 hover:text-green-400 gap-2 transition-all"
-                            onClick={handleEnableTrading}
-                        >
-                            <Key className="w-4 h-4" />
-                            Enable Trading
-                        </Button>
+                        <div className="flex gap-3">
+                            {/* Enable Trading Button Removed - Auto-provisioned on import */}
 
-                        <Button
-                            onClick={() => setIsOpen(true)}
-                            className="bg-accent text-white hover:bg-accent/90 shadow-[0_0_15px_rgba(58,123,255,0.3)] border-none"
-                        >
-                            + Deploy New Agent
-                        </Button>
+                            <Button
+                                onClick={() => setIsOpen(true)}
+                                className="bg-accent text-white hover:bg-accent/90 shadow-[0_0_15px_rgba(58,123,255,0.3)] border-none"
+                            >
+                                + Deploy New Agent
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -238,7 +155,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                 <div className="flex items-center gap-2 pt-2">
                                     <Button
                                         onClick={() => handleToggle(agent.id, agent.isRunning)}
-                                        disabled={!address}
+                                        disabled={!publicKey}
                                         className={`flex-1 font-bold ${agent.isRunning
                                             ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50"
                                             : "bg-accent/10 hover:bg-accent/20 text-accent border border-accent/50"

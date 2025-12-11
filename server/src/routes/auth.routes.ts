@@ -19,7 +19,7 @@ authRouter.post("/login", async (req, res) => {
             update: {}, // No updates needed on login for now
             create: {
                 walletAddress: walletAddress,
-                userName: walletAddress, // Default username
+                userName: `User-${walletAddress.slice(0, 6)}-${Date.now()}`, // Ensure uniqueness
             }
         });
 
@@ -46,6 +46,8 @@ authRouter.post("/login", async (req, res) => {
                         description: "Athena Created",
                         riskProfile: def.risk,
                         systemPrompt: generateSystemPrompt(def.name, "Athena Created", def.risk),
+                        llmProvider: "OPENAI",
+                        llmModel: "gpt-5-nano",
                         isActive: false
                     }
                 });

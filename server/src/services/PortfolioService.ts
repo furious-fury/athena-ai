@@ -1,3 +1,4 @@
+import { prisma } from "../config/database.js";
 import { Portfolio } from "../models/Portfolio.js";
 import { Side } from "../generated/prisma/client.js";
 import { get_positions, get_balance } from "../tools/polymarket.js";
@@ -14,6 +15,79 @@ export interface TradeRecord {
 }
 
 export class PortfolioService {
+    // ... existing methods
+
+    /**
+     * Take a snapshot of the user's current portfolio value (Cash + Positions)
+     */
+    static async takeSnapshot(userId: string) {
+        try {
+            const [balanceObj, positions] = await Promise.all([
+                PortfolioService.getUserBalance(userId),
+                PortfolioService.getAllUserPositions(userId)
+            ]);
+
+            const cashBalance = parseFloat(balanceObj.usdc || "0");
+            const positionsValue = positions.reduce((sum: number, p: any) => sum + (p.exposure || 0), 0);
+            const totalValue = cashBalance + positionsValue;
+
+            await prisma.portfolioSnapshot.create({
+                data: {
+                    userId,
+                    cashBalance,
+                    positionsValue,
+                    totalValue
+                }
+            });
+
+            return { cashBalance, positionsValue, totalValue };
+        } catch (error) {
+            console.error("takeSnapshot failed:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Get portfolio history for chart
+     */
+    static async getHistory(userId: string) {
+        // Fetch existing history
+        const history = await prisma.portfolioSnapshot.findMany({
+            where: { userId },
+            orderBy: { timestamp: 'asc' },
+            take: 168 // Approx 1 week of hourly data
+        });
+
+        // 1. Check if we need a new snapshot (Lazy Tracking)
+        // If no history, OR last snapshot > 1 hour ago
+        const lastSnapshot = history[history.length - 1];
+        const now = new Date();
+        const shouldSnapshot = !lastSnapshot || (now.getTime() - lastSnapshot.timestamp.getTime() > 60 * 60 * 1000);
+
+        if (shouldSnapshot) {
+            // Take snapshot in background (or await if we want fresh data immediately)
+            // Awaiting for better UX on first load
+            const newSnap = await PortfolioService.takeSnapshot(userId);
+            if (newSnap) {
+                // Add to returned list (mock id/timestamp for speed)
+                history.push({
+                    id: "temp",
+                    userId,
+                    timestamp: now,
+                    cashBalance: newSnap.cashBalance,
+                    positionsValue: newSnap.positionsValue,
+                    totalValue: newSnap.totalValue
+                });
+            }
+        }
+
+        return history.map(h => ({
+            time: h.timestamp.toISOString(),
+            value: h.totalValue
+        }));
+    }
+
+    // ... existing methods
     /**
      * Update a user's position after a trade.
      * Returns the updated position including PnL calculation.
@@ -57,15 +131,21 @@ export class PortfolioService {
         const apiPositions: any[] = await get_positions(userId); // Ensure this is imported
 
         // Map to frontend expected format
+        // Map to frontend expected format
         return apiPositions.map((p: any) => ({
-            id: p.asset || p.instrument || Math.random().toString(), // fallback ID
+            id: p.asset || p.conditionId || Math.random().toString(),
             userId,
-            marketId: p.market || "unknown",
-            marketTitle: p.title || p.market, // Gamma usually provides title
-            outcome: p.outcome || "YES", // Default or parsed
-            shares: parseFloat(p.size || "0"),
-            avgEntryPrice: parseFloat(p.price || "0"),
-            exposure: parseFloat(p.value || "0"),
+            marketId: p.asset || p.conditionId || "unknown", // Data API doesn't return 'market' ID, use asset/condition
+            marketTitle: p.title || "Unknown Market",
+            icon: p.icon, // Map icon
+            outcome: p.outcome || "YES",
+            shares: Number(p.size || 0),
+            avgEntryPrice: Number(p.avgPrice || 0), // Data API uses avgPrice
+            initialValue: Number(p.initialValue || 0), // Map initialValue (Cost Basis)
+            exposure: Number(p.currentValue || 0),  // Data API uses currentValue
+            pnl: Number(p.cashPnl || 0),           // Cash PnL
+            percentPnl: Number(p.percentPnl || 0), // Percentage PnL
+            currentPrice: Number(p.curPrice || 0)
         }));
     }
 

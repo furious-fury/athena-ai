@@ -57,6 +57,8 @@ agentRouter.post("/", async (req, res) => {
                 riskProfile: riskProfile, // Enum match
                 systemPrompt: systemPrompt,
                 userId: userId || "demo_user", // Fallback for MVP
+                llmProvider: "OPENAI",
+                llmModel: "gpt-5-nano",
                 isActive: false
             }
         });

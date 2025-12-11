@@ -14,6 +14,6 @@ export declare class AgentRunner {
     agentId: string;
     constructor(userId: string, agentId: string);
     executeTrade(trade: TradeExecution): Promise<AgentRunResult>;
-    getPositions(): Promise<any>;
+    getPositions(): Promise<any[]>;
 }
 //# sourceMappingURL=AgentRunner.d.ts.map

@@ -30,11 +30,24 @@ model User {
   maxTotalExposure     Float @default(2000)
   tradeCooldownSeconds Int   @default(300)
 
-  agents     Agent[]
-  trades     Trade[]
-  positions  Position[]
-  agentLogs  AgentLog[]
-  activities Activity[] // Relation for deposits/withdrawals
+  agents             Agent[]
+  trades             Trade[]
+  positions          Position[]
+  agentLogs          AgentLog[]
+  activities         Activity[] // Relation for deposits/withdrawals
+  portfolioSnapshots PortfolioSnapshot[]
+}
+
+model PortfolioSnapshot {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  timestamp      DateTime @default(now())
+  totalValue     Float // Cash + Positions Value
+  cashBalance    Float
+  positionsValue Float
+
+  @@index([userId, timestamp])
 }
 
 model Agent {

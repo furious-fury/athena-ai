@@ -1,5 +1,4 @@
 import './App.css'
-import './App.css'
 
 import Layout from './components/Layout';
 import Portfolio from './components/Portfolio';
@@ -12,42 +11,16 @@ import UserSettings from './components/UserSettings';
 import { Toaster } from "sonner";
 
 import { useEffect, useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import GlobalActivityFeed from './components/GlobalActivityFeed';
 import DashboardStats from './components/DashboardStats';
 import { useUserSettings } from './lib/api';
-import { ArrowRight, Zap } from 'lucide-react';
-import WalletControl from './components/WalletControl';
-
-// CTA Component for Dashboard
-const TradingActivationCTA = ({ userId, proxyAddress, onNavigateSettings }: { userId: string | null, proxyAddress?: string, onNavigateSettings: () => void }) => {
-  // If user has a proxy wallet (proxyAddress is set), don't show this CTA
-  if (!userId || proxyAddress) return null;
-
-  return (
-    <div className="mb-8 p-6 rounded-xl bg-linear-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-blue-500/20 rounded-lg text-blue-400 animate-pulse">
-          <Zap size={24} fill="currentColor" />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-white">Activate Autonomous Trading</h3>
-          <p className="text-sm text-gray-300">Initialize your dedicated proxy wallet to let agents trade 24/7.</p>
-        </div>
-      </div>
-      <button
-        onClick={onNavigateSettings}
-        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20"
-      >
-        Initialize Wallet <ArrowRight size={16} />
-      </button>
-    </div>
-  );
-};
+import { Zap } from 'lucide-react';
 
 
 function App() {
-  const { address, isConnected } = useAccount();
+  const { publicKey, connected } = useWallet();
 
   // App Navigation State - Default to Dashboard
   const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings'>('dashboard');
@@ -59,16 +32,18 @@ function App() {
   const proxyAddress = (settings as any)?.proxyAddress;
 
   useEffect(() => {
-    if (isConnected && address) {
-      // console.log("App: Logging in user", address);
-      loginUser(address);
+    if (connected && publicKey) {
+      // console.log("App: Logging in user", publicKey.toBase58());
+      loginUser(publicKey.toBase58());
     } else {
       setDbUserId(null);
     }
-  }, [isConnected, address]);
+  }, [connected, publicKey]);
 
   const loginUser = async (walletAddress: string) => {
     try {
+      console.log("App: Logging in with address:", walletAddress);
+
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +61,7 @@ function App() {
 
   // Render content based on active tab
   const renderContent = () => {
-    if (!isConnected) {
+    if (!connected) {
       return (
         <div className="flex flex-col items-center justify-center h-[60vh] space-y-6 animate-in fade-in zoom-in duration-500">
           <div className="p-6 bg-blue-500/10 rounded-full ring-1 ring-blue-500/30 shadow-[0_0_50px_-10px_rgba(59,130,246,0.3)]">
@@ -102,9 +77,27 @@ function App() {
           </div>
           <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm text-gray-400 flex items-center gap-2">
             <span>Please click</span>
-            <span className="font-bold text-white bg-blue-600/20 px-2 py-0.5 rounded border border-blue-500/30">Connect Wallet</span>
+            <div className="scale-75 origin-center">
+              <WalletMultiButton />
+            </div>
             <span>in the top right</span>
           </div>
+        </div>
+      );
+    }
+
+    // HARD GATE: If user is logged in but has no proxy credential, FORCE Settings (Onboarding)
+    if (connected && dbUserId && !proxyAddress && activeTab !== 'settings') {
+      return (
+        <div className="max-w-4xl mx-auto pt-10">
+          <div className="mb-8 text-center">
+            <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30 animate-pulse">
+              <Zap size={32} className="text-purple-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Complete Your Setup</h2>
+            <p className="text-gray-400">Import your Polymarket Credentials to enable autonomous trading.</p>
+          </div>
+          <UserSettings dbUserId={dbUserId} />
         </div>
       );
     }
@@ -119,20 +112,7 @@ function App() {
               <DashboardStats userId={dbUserId} />
             </div>
 
-            {/* Wallet Control (Deposit/Withdraw) - Only if proxy initialized */}
-            {proxyAddress && (
-              <div className="mb-8">
-                <WalletControl userId={dbUserId} proxyAddress={proxyAddress} />
-              </div>
-            )}
-
-            {/* Trading Activation CTA */}
-            <TradingActivationCTA
-              userId={dbUserId}
-              proxyAddress={proxyAddress}
-              onNavigateSettings={() => setActiveTab('settings')}
-            />
-
+            {/* Wallet Control (Deposit/Withdraw) removed as requested */}
 
             <div className="grid grid-cols-1 gap-6 mb-8">
               {/* Compact Agent View */}

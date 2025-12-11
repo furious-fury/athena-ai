@@ -11,6 +11,21 @@ export interface TradeRecord {
 }
 export declare class PortfolioService {
     /**
+     * Take a snapshot of the user's current portfolio value (Cash + Positions)
+     */
+    static takeSnapshot(userId: string): Promise<{
+        cashBalance: number;
+        positionsValue: number;
+        totalValue: number;
+    } | null>;
+    /**
+     * Get portfolio history for chart
+     */
+    static getHistory(userId: string): Promise<{
+        time: string;
+        value: number;
+    }[]>;
+    /**
      * Update a user's position after a trade.
      * Returns the updated position including PnL calculation.
      */
@@ -48,10 +63,15 @@ export declare class PortfolioService {
         userId: string;
         marketId: any;
         marketTitle: any;
+        icon: any;
         outcome: any;
         shares: number;
         avgEntryPrice: number;
+        initialValue: number;
         exposure: number;
+        pnl: number;
+        percentPnl: number;
+        currentPrice: number;
     }[]>;
     /**
      * Fetch user balance (USDC & POL)

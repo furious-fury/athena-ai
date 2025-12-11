@@ -214,7 +214,7 @@ export const useProxyWallet = (userId: string) => {
             return res.json();
         },
         enabled: !!userId,
-        refetchInterval: 10000,
+        refetchInterval: 30000,
     });
 };
 
@@ -259,5 +259,19 @@ export const useUserBalance = (userId: string) => {
         },
         enabled: !!userId,
         refetchInterval: 5000,
+    });
+};
+
+export const usePortfolioHistory = (userId: string) => {
+    return useQuery({
+        queryKey: ["portfolioHistory", userId],
+        queryFn: async () => {
+            const res = await fetch(`${API_URL}/portfolio/history/${userId}`);
+            if (!res.ok) throw new Error("Failed to fetch history");
+            const data = await res.json();
+            return data.history || [];
+        },
+        enabled: !!userId,
+        refetchInterval: 30000, // Update every 30s
     });
 };

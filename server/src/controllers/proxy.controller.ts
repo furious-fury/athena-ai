@@ -2,56 +2,100 @@ import type { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
 import { ethers } from 'ethers';
 import { SmartWalletService } from '../services/smartWallet.service.js';
+import { redis } from '../config/redis.js';
 
 // Helper to encrypt key (Placeholder for now - In prod use real encryption)
 const encryptKey = (key: string) => key;
 
-export const createProxyWallet = async (req: Request, res: Response) => {
-    try {
-        const { userId } = req.body;
+import { ClobClient } from "@polymarket/clob-client";
 
-        if (!userId) {
-            return res.status(400).json({ error: "UserId is required" });
+export const importProxyWallet = async (req: Request, res: Response) => {
+    try {
+        const { userId, privateKey, proxyAddress } = req.body;
+
+        if (!userId || !privateKey || !proxyAddress) {
+            return res.status(400).json({ error: "Missing required fields: userId, privateKey, proxyAddress" });
         }
 
-        // 1. Check if user exists
+        // 1. Validate User
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // 2. Check if SCW already exists
-        if (user.scwAddress) {
-            return res.status(200).json({
-                message: "Smart Account already exists",
-                address: user.scwAddress, // Map to address for frontend
-                scwAddress: user.scwAddress,
-                exists: true
-            });
+        // 2. Validate Private Key & Proxy Format
+        let wallet;
+        try {
+            wallet = new ethers.Wallet(privateKey);
+        } catch (e) {
+            return res.status(400).json({ error: "Invalid Private Key" });
         }
 
-        // 3. Generate Pimlico Smart Account (ERC-4337)
-        console.log(`[Proxy] Generating Pimlico Smart Account for user ${userId}...`);
-        const scwData = await SmartWalletService.createOneClickAccount();
-        console.log(`[Proxy] SCW Generated: ${scwData.address}`);
+        if (!ethers.utils.isAddress(proxyAddress)) {
+            return res.status(400).json({ error: "Invalid Proxy Address" });
+        }
 
+        console.log(`[Proxy] Importing for ${userId}. Signer: ${wallet.address} | Proxy: ${proxyAddress}`);
+
+        // 3. Save Credentials
+        // NOTE: In production, scwOwnerPrivateKey MUST be encrypted. 
+        // Current implementation uses a placeholder encryptKey function.
         await prisma.user.update({
             where: { id: userId },
             data: {
-                scwAddress: scwData.address,
-                scwOwnerPrivateKey: scwData.privateKey ? encryptKey(scwData.privateKey) : null
+                scwAddress: proxyAddress,
+                scwOwnerPrivateKey: encryptKey(privateKey),
+                // walletAddress: wallet.address // REMOVED: Do not overwrite the connected Solana Address with the EVM Signer Address
+                // Preserving the Solana Identity allowing subsequent logins to succeed.
             }
         });
 
-        res.status(201).json({
-            message: "Smart Account created",
-            address: scwData.address,
-            scwAddress: scwData.address,
-            exists: false
+        // 4. Auto-Setup API Keys (Ensure Trade Readiness)
+        console.log(`[Proxy] Setting up API Keys...`);
+        try {
+            // 137 = Polygon
+            const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
+            const signer = new ethers.Wallet(privateKey, provider);
+
+            // Init with Proxy configuration
+            const clobClient = new ClobClient(
+                "https://clob.polymarket.com",
+                137,
+                signer,
+                undefined,
+                2, // signatureType 2 (Proxy)
+                proxyAddress
+            );
+
+            // Create Keys
+            const keys = await clobClient.createApiKey();
+
+            if (keys && keys.key) {
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        apiKey: keys.key,
+                        apiSecret: keys.secret,
+                        apiPassphrase: keys.passphrase
+                    }
+                });
+                console.log(`[Proxy] API Keys Created & Saved.`);
+            }
+
+        } catch (apiError: any) {
+            console.warn(`[Proxy] API Key Setup Warning: ${apiError.message}`);
+            // Don't fail the whole request, just warn. User can trade later or keys might already exist.
+        }
+
+        res.status(200).json({
+            message: "Wallet Imported Successfully",
+            address: proxyAddress,
+            scwAddress: proxyAddress,
+            signer: wallet.address
         });
 
     } catch (error) {
-        console.error("Error creating smart account:", error);
+        console.error("Error importing wallet:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -73,10 +117,48 @@ export const getProxyWallet = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "No smart account found" });
         }
 
-        res.json({
+        // Cache Layer
+        const CACHE_KEY = `balance:${userId}`;
+        const cached = await redis.get(CACHE_KEY);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+
+        // Fetch Real Balance from Polygon
+        let balance = 0;
+        try {
+            const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
+            const nativeUsdcAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+            const bridgedUsdcAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+
+            const abi = ["function balanceOf(address) view returns (uint256)"];
+            const nativeContract = new ethers.Contract(nativeUsdcAddress, abi, provider);
+            const bridgedContract = new ethers.Contract(bridgedUsdcAddress, abi, provider);
+
+            const [nativeRaw, bridgedRaw] = await Promise.all([
+                nativeContract.balanceOf(user.scwAddress).catch(() => ethers.BigNumber.from(0)),
+                bridgedContract.balanceOf(user.scwAddress).catch(() => ethers.BigNumber.from(0))
+            ]);
+
+            const nativeBal = parseFloat(ethers.utils.formatUnits(nativeRaw, 6));
+            const bridgedBal = parseFloat(ethers.utils.formatUnits(bridgedRaw, 6));
+
+            console.log(`[Balance] User ${userId} | Native: ${nativeBal} | Bridged: ${bridgedBal} (Live Fetch)`);
+            balance = nativeBal + bridgedBal;
+        } catch (rpcError) {
+            console.warn(`[Proxy] Failed to fetch balance for ${user.scwAddress}`, rpcError);
+            // Fallback to 0 if RPC fails, don't crash endpoint
+        }
+
+        const data = {
             address: user.scwAddress,
-            balance: 0 // Frontend often fetches real balance on-chain
-        });
+            balance: balance
+        };
+
+        // Cache for 30 seconds
+        await redis.set(CACHE_KEY, JSON.stringify(data), { EX: 30 });
+
+        res.json(data);
 
     } catch (error) {
         console.error("Error fetching smart account:", error);

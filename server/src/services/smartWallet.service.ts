@@ -20,39 +20,9 @@ const TRANSPORT_URL = `https://api.pimlico.io/v2/polygon/rpc?apikey=${PIMLICO_AP
 
 export class SmartWalletService {
     /**
-     * Generates a new Pimlico Safe Account (ERC-4337).
-     * Returns the address and the private key of the owner.
+     * [DEPRECATED/REMOVED] createOneClickAccount
+     * We now Import wallets instead of generating them.
      */
-    static async createOneClickAccount() {
-        try {
-            // 1. Generate a new private key (EOA)
-            const privateKey = generatePrivateKey();
-            const signer = privateKeyToAccount(privateKey);
-
-            // 2. Create Safe Account (1.4.1 + EP 0.6)
-            // Safe 1.4.1 is the default and only supported version in permissionless for now (beside 1.5.0)
-            const safeAccount = await toSafeSmartAccount({
-                client: publicClient,
-                owners: [signer],
-                version: "1.4.1",
-                entryPoint: {
-                    address: entryPoint06Address,
-                    version: "0.6"
-                },
-            });
-
-            const address = safeAccount.address;
-            console.log(`[SmartWallet] Created Safe Account (1.4.1 / EP 0.6): ${address}`);
-
-            return {
-                address,
-                privateKey: privateKey,
-            };
-        } catch (error) {
-            console.error("Error creating one-click account:", error);
-            throw error;
-        }
-    }
 
     /**
      * Sends a gasless transaction using the Pimlico Paymaster.

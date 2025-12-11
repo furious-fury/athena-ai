@@ -29,7 +29,7 @@ export declare const get_active_events: (limit?: number) => Promise<any>;
 /**
  * Fetches user positions from Gamma API (Real-time)
  */
-export declare const get_positions: (userId: string) => Promise<any>;
+export declare const get_positions: (userId: string) => Promise<any[]>;
 /**
  * Gets the USER's real wallet balance (EOA or Proxy) for display.
  */
@@ -43,5 +43,29 @@ export declare const place_trade: (trade: TradeParams) => Promise<{
     txId: any;
     price: number;
     settlementPrice: number;
+}>;
+/**
+ * Fetches trade history from Polymarket Data API (Gamma)
+ * Uses public API which is more reliable for historical display than CLOB
+ */
+export declare const get_trades: (userId: string) => Promise<{
+    id: any;
+    market: any;
+    asset_id: any;
+    side: any;
+    size: any;
+    price: any;
+    timestamp: any;
+    outcome: any;
+    transactionHash: any;
+    icon: any;
+}[]>;
+/**
+ * Closes a position by placing a SELL order for the full size.
+ * Bypasses place_trade "USDC amount" logic to ensure exact share selling.
+ */
+export declare const close_position: (userId: string, marketId: string, outcome: string) => Promise<{
+    success: boolean;
+    txId: any;
 }>;
 //# sourceMappingURL=polymarket.d.ts.map

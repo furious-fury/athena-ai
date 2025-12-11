@@ -1,24 +1,44 @@
+import { useMemo } from 'react';
 import Chart from './Chart'
-import TransactionHistory from './TransactionHistory'
+
 import ActivePositions from './ActivePositions'
-import { useProxyWallet } from '../lib/api'
-import WalletControl from './WalletControl'
-import { useProxyUSDCBalance } from '../hooks/useProxyUSDCBalance'
+import { useProxyWallet, useUserPositions, usePortfolioHistory } from '../lib/api'
 
 interface PortfolioProps {
     userId: string | null;
 }
 
 function Portfolio({ userId }: PortfolioProps) {
-    const { data: proxyWallet, isLoading } = useProxyWallet(userId || "");
-    const { formatted: balanceFormatted, balance: balanceNum } = useProxyUSDCBalance(userId);
+    const { data: proxyWallet, isLoading: walletLoading } = useProxyWallet(userId || "");
+    const { data: positions, isLoading: positionsLoading } = useUserPositions(userId || "");
+    const { data: history } = usePortfolioHistory(userId || "");
+
+    const balanceNum = proxyWallet?.balance || 0;
+    const balanceFormatted = balanceNum.toFixed(2);
     const proxyAddress = proxyWallet?.address;
 
-    const activeValueNum = 0; // Placeholder until we have real position values
-    const totalValue = balanceNum + activeValueNum;
+    // Calculate Active Positions Value
+    const { activeValueNum, activePositionsCount } = useMemo(() => {
+        if (!positions || positions.length === 0) return { activeValueNum: 0, activePositionsCount: 0 };
 
-    const cashPercent = totalValue > 0 ? (balanceNum / totalValue) * 100 : 0;
-    const activePercent = totalValue > 0 ? (activeValueNum / totalValue) * 100 : 0;
+        const totalValue = positions.reduce((acc: number, pos: any) => {
+            return acc + (Number(pos.exposure) || 0);
+        }, 0);
+
+        return {
+            activeValueNum: totalValue,
+            activePositionsCount: positions.length
+        };
+    }, [positions]);
+
+    const totalNetWorth = balanceNum + activeValueNum;
+    const totalNetWorthFormatted = totalNetWorth.toFixed(2);
+
+    // Prevent division by zero
+    const cashPercent = totalNetWorth > 0 ? (balanceNum / totalNetWorth) * 100 : (balanceNum > 0 ? 100 : 0);
+    const activePercent = totalNetWorth > 0 ? (activeValueNum / totalNetWorth) * 100 : 0;
+
+    const isLoading = walletLoading || positionsLoading;
 
     return (
 
@@ -37,7 +57,7 @@ function Portfolio({ userId }: PortfolioProps) {
                     <h2 className="text-text-secondary text-sm font-medium uppercase tracking-wider mb-2">Total Net Worth</h2>
                     <div className="flex items-baseline gap-2">
                         <span className="text-4xl font-bold text-white tracking-tight">
-                            {isLoading ? "..." : `$${balanceFormatted}`}
+                            {isLoading ? "..." : `$${totalNetWorthFormatted}`}
                         </span>
                         {/* <span className="text-emerald-400 text-sm font-medium flex items-center bg-emerald-400/10 px-2 py-1 rounded-full">
                             +2.4% 
@@ -46,7 +66,9 @@ function Portfolio({ userId }: PortfolioProps) {
 
                     <div className="mt-8">
                         {proxyAddress ? (
-                            <WalletControl userId={userId} proxyAddress={proxyAddress} className="flex gap-3" />
+                            <div className="text-sm text-gray-400">
+                                Proxy: <span className="font-mono text-white/50">{proxyAddress.slice(0, 6)}...{proxyAddress.slice(-4)}</span>
+                            </div>
                         ) : (
                             <div className="text-sm text-gray-500 italic">Initializing wallet...</div>
                         )}
@@ -58,7 +80,7 @@ function Portfolio({ userId }: PortfolioProps) {
                     <div className="bg-panel p-6 rounded-xl border border-transparent flex flex-col justify-between">
                         <div>
                             <p className="text-text-secondary text-xs uppercase font-bold tracking-wider">Cash Balance</p>
-                            <p className="text-2xl font-bold text-white mt-1">{isLoading ? "..." : `$${balanceFormatted}`}</p>
+                            <p className="text-2xl font-bold text-white mt-1">{walletLoading ? "..." : `$${balanceFormatted}`}</p>
                         </div>
                         <div className="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
                             <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${cashPercent}%` }} />
@@ -69,32 +91,27 @@ function Portfolio({ userId }: PortfolioProps) {
                     <div className="bg-panel p-6 rounded-xl border border-transparent flex flex-col justify-between">
                         <div>
                             <p className="text-text-secondary text-xs uppercase font-bold tracking-wider">Active Positions</p>
-                            <p className="text-2xl font-bold text-white mt-1">$0.00</p>
+                            <p className="text-2xl font-bold text-white mt-1">${activeValueNum.toFixed(2)}</p>
                         </div>
                         <div className="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
                             <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${activePercent}%` }} />
                         </div>
-                        <p className="text-xs text-text-secondary mt-2">0 active bets</p>
+                        <p className="text-xs text-text-secondary mt-2">{activePositionsCount} active bets</p>
                     </div>
                 </div>
             </div>
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Chart Section - Takes up 2 columns */}
-                <div className="lg:col-span-2">
-                    <Chart className="h-[450px]" />
-                </div>
-
-                {/* Transactions Feed - Takes up 1 column */}
-                <div className="lg:col-span-1">
-                    <TransactionHistory userId={userId} className="h-[450px]" />
+                {/* Chart Section - Takes up full width now */}
+                <div className="lg:col-span-3">
+                    <Chart data={history || []} className="h-[350px]" />
                 </div>
             </div>
 
             {/* Active Positions Table */}
             <div>
-                <ActivePositions userId={userId} className="h-[450px]" />
+                <ActivePositions userId={userId} className="h-[600px]" />
             </div>
         </div>
     )

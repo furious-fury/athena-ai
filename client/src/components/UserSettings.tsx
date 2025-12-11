@@ -28,6 +28,10 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [isCreatingProxy, setIsCreatingProxy] = useState(false);
 
+    // Import State
+    const [importPK, setImportPK] = useState("");
+    const [importProxy, setImportProxy] = useState("");
+
     // Update form when settings are fetched
     useEffect(() => {
         if (settings) {
@@ -71,26 +75,30 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
         }
     };
 
-    const handleInitializeProxy = async () => {
+    const handleImportProxy = async () => {
         setIsCreatingProxy(true);
         try {
-            const res = await fetch('http://localhost:5000/api/user/proxy/create', {
+            const res = await fetch('http://localhost:5000/api/user/proxy/import', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: dbUserId }),
+                body: JSON.stringify({
+                    userId: dbUserId,
+                    privateKey: importPK,
+                    proxyAddress: importProxy
+                }),
             });
-
-            if (!res.ok) throw new Error('Failed to create proxy wallet');
 
             const data = await res.json();
 
-            setMessage({ type: "success", text: data.exists ? "Proxy wallet already exists." : "Proxy wallet created successfully!" });
+            if (!res.ok) throw new Error(data.error || 'Failed to import wallet');
+
+            setMessage({ type: "success", text: "Wallet imported successfully!" });
 
             setProxyWalletAddress(data.address);
             queryClient.invalidateQueries({ queryKey: ['userSettings', dbUserId] });
 
         } catch (error: any) {
-            setMessage({ type: "error", text: error.message || "Failed to create proxy wallet" });
+            setMessage({ type: "error", text: error.message || "Failed to import wallet" });
         } finally {
             setIsCreatingProxy(false);
         }
@@ -221,21 +229,44 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
                                 <div className="flex items-start gap-3 p-3 bg-blue-500/10 rounded border border-blue-500/20">
                                     <AlertCircle className="text-blue-400 shrink-0 mt-0.5" size={16} />
                                     <p className="text-xs text-blue-200 leading-relaxed">
-                                        <strong>Action Required:</strong> Send USDC to this address to fund your agent's trading activities.
+                                        <strong>Action Required:</strong> Send Bridged USDC to this address to fund your agent's trading activities.
                                     </p>
                                 </div>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 <p className="text-sm text-gray-400 leading-relaxed">
-                                    Create a dedicated proxy wallet for your agents. This wallet is securely managed by the server and allows agents to execute trades automatically without signing every transaction.
+                                    To enable autonomous trading, you must import your existing Polymarket Proxy wallet and its controlling Private Key.
                                 </p>
+
+                                <div className="space-y-3 p-4 bg-black/20 rounded-lg border border-white/5">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-gray-400">Owner Private Key</label>
+                                        <Input
+                                            type="password"
+                                            placeholder="0x..."
+                                            value={importPK}
+                                            onChange={(e) => setImportPK(e.target.value)}
+                                            className="bg-black/40 border-white/10 text-white text-xs font-mono"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-gray-400">Proxy Address</label>
+                                        <Input
+                                            placeholder="0x..."
+                                            value={importProxy}
+                                            onChange={(e) => setImportProxy(e.target.value)}
+                                            className="bg-black/40 border-white/10 text-white text-xs font-mono"
+                                        />
+                                    </div>
+                                </div>
+
                                 <Button
-                                    onClick={handleInitializeProxy}
-                                    disabled={isCreatingProxy}
+                                    onClick={handleImportProxy}
+                                    disabled={isCreatingProxy || !importPK || !importProxy}
                                     className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium"
                                 >
-                                    {isCreatingProxy ? "Initializing..." : "Initialize Trading Wallet"}
+                                    {isCreatingProxy ? "Importing..." : "Import Trading Credentials"}
                                 </Button>
                             </div>
                         )}

@@ -121,12 +121,12 @@ router.put("/credentials", async (req, res) => {
         res.status(500).json({ error: "Failed to update credentials" });
     }
 });
-import { createProxyWallet, getProxyWallet, exportProxyWallet, withdrawFunds, syncDeposits } from "../controllers/proxy.controller.js";
+import { importProxyWallet, getProxyWallet, exportProxyWallet, withdrawFunds, syncDeposits } from "../controllers/proxy.controller.js";
 /**
- * POST /api/user/proxy/create
- * Generate a new server-managed proxy wallet for the user
+ * POST /api/user/proxy/import
+ * Import an existing Proxy Wallet and Private Key
  */
-router.post("/proxy/create", createProxyWallet);
+router.post("/proxy/import", importProxyWallet);
 /**
  * POST /api/user/proxy/sync
  * Manually trigger a blockchain scan for deposits

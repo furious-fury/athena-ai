@@ -1,9 +1,9 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Header() {
-    return (
-        <header className="">
-            <ConnectButton showBalance={false} />
-        </header>
-    )
+  return (
+    <header className="">
+      <WalletMultiButton />
+    </header>
+  )
 }

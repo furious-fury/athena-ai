@@ -47,7 +47,7 @@ jobs:
           cache-dependency-path: server/package-lock.json
           
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate

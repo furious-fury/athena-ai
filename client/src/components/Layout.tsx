@@ -7,7 +7,8 @@ import {
     Wallet,
     Settings,
     Menu,
-    X
+    X,
+    Twitter
 } from "lucide-react";
 
 interface LayoutProps {
@@ -83,6 +84,18 @@ function Layout({ children, activeTab = 'dashboard', setActiveTab }: LayoutProps
                         );
                     })}
                 </nav>
+
+                <div className="p-4 border-t border-white/5">
+                    <a
+                        href="https://x.com/AthennaAI"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-text-secondary hover:bg-white/5 hover:text-white transition-all duration-200"
+                    >
+                        <Twitter className="w-5 h-5" />
+                        <span className="font-medium">Follow on X</span>
+                    </a>
+                </div>
             </aside>
 
             {/* Main Content */}

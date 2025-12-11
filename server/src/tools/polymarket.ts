@@ -4,6 +4,7 @@ import { prisma } from "../config/database.js";
 import { SmartAccountSigner } from "./smart-account-signer.js";
 import { SmartWalletService } from "../services/smartWallet.service.js";
 // import fetch from "node-fetch"; // Use native fetch
+import { SecurityService } from "../services/SecurityService.js";
 
 // Export TradeParams as expected by other files
 export interface TradeParams {
@@ -136,7 +137,7 @@ export const get_balance = async (userId: string) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { scwOwnerPrivateKey: true, scwAddress: true, balance: true }
+            select: { id: true, scwOwnerPrivateKey: true, scwAddress: true, balance: true }
         });
 
         if (!user || !user.scwOwnerPrivateKey) return { usdc: "0", pol: "0", address: "" };
@@ -149,7 +150,8 @@ export const get_balance = async (userId: string) => {
         if (user.scwAddress) {
             targetAddress = user.scwAddress;
         } else {
-            const wallet = new ethers.Wallet(user.scwOwnerPrivateKey, provider);
+            const privateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, user.id);
+            const wallet = new ethers.Wallet(privateKey, provider);
             targetAddress = wallet.address;
         }
 
@@ -280,7 +282,8 @@ export const place_trade = async (trade: TradeParams) => {
         const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
 
         if (user.scwOwnerPrivateKey) {
-            const eoaWallet = new ethers.Wallet(user.scwOwnerPrivateKey, provider);
+            const privateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, user.id);
+            const eoaWallet = new ethers.Wallet(privateKey, provider);
             const useProxy = !!user.scwAddress;
             const proxyAddress = user.scwAddress;
 
@@ -566,7 +569,8 @@ export const close_position = async (userId: string, marketId: string, outcome: 
         if (!user) throw new Error("User not found");
 
         const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
-        const signer = new ethers.Wallet(user.scwOwnerPrivateKey!, provider);
+        const privateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey!, user.id);
+        const signer = new ethers.Wallet(privateKey, provider);
         const eoaWallet = signer;
 
         await syncTime();

@@ -4,8 +4,7 @@ import { ethers } from 'ethers';
 import { SmartWalletService } from '../services/smartWallet.service.js';
 import { redis } from '../config/redis.js';
 
-// Helper to encrypt key (Placeholder for now - In prod use real encryption)
-const encryptKey = (key: string) => key;
+import { SecurityService } from '../services/SecurityService.js';
 
 import { ClobClient } from "@polymarket/clob-client";
 
@@ -44,7 +43,7 @@ export const importProxyWallet = async (req: Request, res: Response) => {
             where: { id: userId },
             data: {
                 scwAddress: proxyAddress,
-                scwOwnerPrivateKey: encryptKey(privateKey),
+                scwOwnerPrivateKey: await SecurityService.encrypt(privateKey, userId),
                 // walletAddress: wallet.address // REMOVED: Do not overwrite the connected Solana Address with the EVM Signer Address
                 // Preserving the Solana Identity allowing subsequent logins to succeed.
             }
@@ -183,8 +182,9 @@ export const exportProxyWallet = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "No private key found" });
         }
 
-        // Return the owner key so they can control the SCW externally if needed
-        res.json({ privateKey: user.scwOwnerPrivateKey });
+        // Decrypt before returning
+        const decryptedKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, userId);
+        res.json({ privateKey: decryptedKey });
 
     } catch (error) {
         console.error("Error exporting key:", error);
@@ -202,7 +202,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { walletAddress: true, scwAddress: true, scwOwnerPrivateKey: true }
+            select: { id: true, walletAddress: true, scwAddress: true, scwOwnerPrivateKey: true }
         });
 
         if (!user || (!user.scwAddress && !user.scwOwnerPrivateKey)) {
@@ -214,10 +214,16 @@ export const withdrawFunds = async (req: Request, res: Response) => {
         const destination = user.walletAddress;
         let txHash;
 
+        // Decrypt Private Key just in time (if present)
+        let signerPrivateKey = "";
+        if (user.scwOwnerPrivateKey) {
+            signerPrivateKey = await SecurityService.decrypt(user.scwOwnerPrivateKey, user.id);
+        }
+
         // MODE 1: Standard EOA Transfer (Fallback)
-        if (!user.scwAddress && user.scwOwnerPrivateKey) {
+        if (!user.scwAddress && signerPrivateKey) {
             const provider = new ethers.providers.JsonRpcProvider(process.env.POLYGON_RPC_URL || "https://polygon-rpc.com");
-            const wallet = new ethers.Wallet(user.scwOwnerPrivateKey, provider);
+            const wallet = new ethers.Wallet(signerPrivateKey, provider);
 
             if (currency === "POL" || currency === "MATIC") {
                 const value = ethers.utils.parseEther(amount.toString());
@@ -244,12 +250,12 @@ export const withdrawFunds = async (req: Request, res: Response) => {
                 txHash = tx.hash;
             }
 
-        } else if (user.scwAddress && user.scwOwnerPrivateKey) {
+        } else if (user.scwAddress && signerPrivateKey) {
             // MODE 2: Proxy Smart Wallet (Pimlico)
             if (currency === "POL" || currency === "MATIC") {
                 const value = ethers.utils.parseEther(amount.toString());
                 txHash = await SmartWalletService.sendTransaction(
-                    user.scwOwnerPrivateKey,
+                    signerPrivateKey,
                     destination as any,
                     BigInt(value.toString()),
                     "0x"
@@ -264,7 +270,7 @@ export const withdrawFunds = async (req: Request, res: Response) => {
                 const data = iface.encodeFunctionData("transfer", [destination, amountUnits]);
 
                 txHash = await SmartWalletService.sendTransaction(
-                    user.scwOwnerPrivateKey,
+                    signerPrivateKey,
                     usdcAddress as any,
                     BigInt(0),
                     data as any

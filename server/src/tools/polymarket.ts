@@ -729,20 +729,24 @@ export const close_position = async (userId: string, marketId: string, outcome: 
         // Previously we tried 0.0001 but some markets reject it if min is 0.001.
         if (finalPrice < 0.01) {
             console.warn(`[CLOSE] ⚠️ Price ${finalPrice} < 0.01. Forcing smaller tick size.`);
-            // Only override if we didn't fetch a valid small tick size, OR if the fetched one is too big?
-            // Actually, if we fetched one, we should trust it.
-            // But I didn't see the log "Fetched Tick Size" in the user output, implying fetch failed or returned nothing.
-            // safely default to 0.001.
             if (tickSize === "0.01") {
                 tickSize = "0.001";
             }
         }
 
+        // FIX: Round inputs to prevent "NaN" or "Decimal" errors in ClobClient
+        // Floor price to 2 decimals (standard tick) or 3 if small
+        const decimals = tickSize === "0.01" ? 2 : 3;
+        const safePrice = parseFloat(finalPrice.toFixed(decimals));
+        const safeSize = parseFloat(size.toFixed(4)); // Cap decimals for safety
+
+        console.log(`[CLOSE] 🛠️ Sanitized: Price ${safePrice} (Tick ${tickSize}), Size ${safeSize}`);
+
         const order = await clobClient.createOrder({
             tokenID: assetTokenId,
-            price: finalPrice.toString(),
+            price: safePrice.toString(),
             side: "SELL",
-            size: size.toString(), // Exact shares
+            size: safeSize.toString(),
             feeRateBps: 0,
             expiration: 0,
             nonce: 0

@@ -189,9 +189,9 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                     <Button
                                         onClick={() => handleToggle(agent.id, agent.isRunning)}
                                         disabled={!publicKey}
-                                        className={`flex-1 font-bold ${agent.isRunning
+                                        className={`flex-1 font-bold transition-all duration-300 ${agent.isRunning
                                             ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50"
-                                            : "bg-accent/10 hover:bg-accent/20 text-accent border border-accent/50"
+                                            : "bg-blue-600/50 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border-none hover:scale-[1.02]"
                                             }`}
                                     >
                                         {agent.isRunning ? "Stop Agent" : "Start Agent"}

@@ -22,8 +22,20 @@ import { Zap } from 'lucide-react';
 function App() {
   const { publicKey, connected } = useWallet();
 
-  // App Navigation State - Default to Dashboard
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings'>('dashboard');
+  // App Navigation State - Init from URL or Default
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get('tab') as any) || 'dashboard';
+  });
+
+  // Sync URL with activeTab
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') !== activeTab) {
+      params.set('tab', activeTab);
+      window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }
+  }, [activeTab]);
 
   const [dbUserId, setDbUserId] = useState<string | null>(null);
 

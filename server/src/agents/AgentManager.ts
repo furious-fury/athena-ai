@@ -53,13 +53,12 @@ export class AgentManager {
 
         // 2. Delete from DB
         try {
-            // Delete logs first to avoid foreign key constraints if cascade isn't set up
+            // Delete logs first
             await prisma.agentLog.deleteMany({ where: { agentId } });
 
-            // Delete trades might be needed if they block deletion, but usually we want to keep trades.
-            // However, agentId is nullable on Trade? No, it's required in schema.
-            // If we delete agent, we might need to cascade delete trades or untie them. 
-            // For safety, let's assume we keep trades if possible, but if FK blocks it, we might need to handle it.
+            // FIX: Delete trades to avoid FK constraint "Trade_agentId_fkey"
+            // This is a destructive action but required to remove the agent.
+            await prisma.trade.deleteMany({ where: { agentId } });
             // Given the user request, let's assume standard deletion.
 
             await prisma.agent.delete({

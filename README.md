@@ -46,7 +46,11 @@ npm run dev
 ### Core Trading Capabilities
 - **Autonomous Agents**: Deploy and control AI agents that trade based on news-driven strategies and configurable risk profiles.
 - **Real-time Monitoring**: Watch agent activities, trade logs, and performance metrics in real-time.
-- **Risk Management**: Automated risk checks, portfolio exposure analysis, and trade cooldown enforcement.
+- **Risk Management**: 
+  - **Automated Stop-Loss/Take-Profit**: Configurable percentage thresholds per agent.
+  - **Maintenance Mode**: Agents continue to monitor and close positions based on SL/TP rules even when "Paused", ensuring your portfolio is never left unguarded.
+  - **Exposure Limits**: Validates current market exposure before executing new trades.
+  - **Trade Cooldowns**: Enforces time intervals between trades to prevent spam.
 - **Actionable Insights**: Market exploration and data visualization.
 
 ### Intelligence Layer

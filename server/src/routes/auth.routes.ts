@@ -33,9 +33,9 @@ authRouter.post("/login", async (req, res) => {
             const { generateSystemPrompt } = await import("../agents/prompts.js");
 
             const defaults = [
-                { name: "Conservative Agent", risk: "LOW" as const },
-                { name: "Balanced Agent", risk: "MEDIUM" as const },
-                { name: "Aggressive Agent", risk: "HIGH" as const }
+                { name: "Conservative Agent", risk: "LOW" as const, sl: 20.0, tp: 100.0 },
+                { name: "Balanced Agent", risk: "MEDIUM" as const, sl: 30.0, tp: 200.0 },
+                { name: "Aggressive Agent", risk: "HIGH" as const, sl: 50.0, tp: 500.0 }
             ];
 
             for (const def of defaults) {
@@ -46,10 +46,12 @@ authRouter.post("/login", async (req, res) => {
                         description: "Athena Created",
                         riskProfile: def.risk,
                         systemPrompt: generateSystemPrompt(def.name, "Athena Created", def.risk),
-                        llmProvider: "OPENAI",
-                        llmModel: "gpt-5-nano",
+                        llmProvider: "OPENAI", // Default to OpenAI
+                        llmModel: "gpt-4o-mini", // Cost efficient default
                         pollingInterval: 120, // 2 minutes
-                        isActive: false
+                        isActive: false,
+                        stopLossPercent: def.sl,
+                        takeProfitPercent: def.tp
                     }
                 });
             }

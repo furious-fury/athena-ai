@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useAgents, useControlAgent, useCreateAgent, useDeleteAgent } from "../lib/api";
+import { useAgents, useControlAgent, useCreateAgent, useDeleteAgent, useUpdateAgent } from "../lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2 } from "lucide-react";
+import { Trash2, Settings, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
     Dialog,
@@ -18,13 +19,22 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
 
     const { data: agents } = useAgents(dbUserId);
     const { mutate: controlAgent } = useControlAgent();
-    const { mutate: createAgent } = useCreateAgent();
-    const { mutate: deleteAgent } = useDeleteAgent();
+    const { mutate: createAgent, isPending: isCreating } = useCreateAgent();
+    const { mutate: deleteAgent, isPending: isDeleting } = useDeleteAgent();
+    const { mutate: updateAgent, isPending: isUpdating } = useUpdateAgent();
 
     // Form State
     const [name, setName] = useState("");
     const [riskProfile, setRiskProfile] = useState("MEDIUM");
+    const [stopLoss, setStopLoss] = useState("20");
+    const [takeProfit, setTakeProfit] = useState("100");
+
     const [isOpen, setIsOpen] = useState(false);
+
+    // Edit State
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingAgent, setEditingAgent] = useState<any>(null);
+
     const [deleteAgentId, setDeleteAgentId] = useState<string | null>(null);
 
     const handleToggle = (agentId: string, isRunning: boolean) => {
@@ -47,14 +57,59 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
         if (!name || !riskProfile) return;
         if (!dbUserId) return alert("Please wait for login...");
 
-        createAgent({ name, description: "User Created", riskProfile, userId: dbUserId }, {
+        createAgent({
+            name,
+            description: "User Created",
+            riskProfile,
+            userId: dbUserId,
+            stopLossPercent: !isNaN(parseFloat(stopLoss)) ? parseFloat(stopLoss) : 20,
+            takeProfitPercent: !isNaN(parseFloat(takeProfit)) ? parseFloat(takeProfit) : 100
+        }, {
             onSuccess: () => {
                 setIsOpen(false);
                 setName("");
                 setRiskProfile("MEDIUM");
+                setStopLoss("20");
+                setTakeProfit("100");
+                toast.success("Agent deployed successfully!");
+            },
+            onError: (err) => {
+                toast.error(`Failed to deploy agent: ${err.message}`);
             }
         });
     }
+
+    const openEdit = (agent: any) => {
+        setEditingAgent(agent);
+        setName(agent.name);
+        setRiskProfile(agent.riskProfile);
+        setStopLoss(agent.stopLossPercent?.toString() || "20");
+        setTakeProfit(agent.takeProfitPercent?.toString() || "100");
+        setIsEditOpen(true);
+    };
+
+    const handleUpdate = () => {
+        if (!editingAgent || !dbUserId) return;
+        updateAgent({
+            agentId: editingAgent.id,
+            data: {
+                userId: dbUserId,
+                name,
+                riskProfile,
+                stopLossPercent: !isNaN(parseFloat(stopLoss)) ? parseFloat(stopLoss) : undefined,
+                takeProfitPercent: !isNaN(parseFloat(takeProfit)) ? parseFloat(takeProfit) : undefined
+            }
+        }, {
+            onSuccess: () => {
+                setIsEditOpen(false);
+                setEditingAgent(null);
+                toast.success("Agent settings updated successfully!");
+            },
+            onError: (err) => {
+                toast.error(`Failed to update settings: ${err.message}`);
+            }
+        });
+    };
 
     return (
         <div className="space-y-6">
@@ -67,8 +122,6 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                     </div>
                     <div className="flex gap-3">
                         <div className="flex gap-3">
-                            {/* Enable Trading Button Removed - Auto-provisioned on import */}
-
                             <Button
                                 onClick={() => setIsOpen(true)}
                                 className="bg-accent text-white hover:bg-accent/90 shadow-[0_0_15px_rgba(58,123,255,0.3)] border-none"
@@ -80,7 +133,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                 </div>
             )}
 
-            {/* Create Agent Dialog - Rendered regardless of variant */}
+            {/* Create Agent Dialog */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="bg-panel border-none text-white shadow-2xl">
                     <DialogHeader>
@@ -112,8 +165,96 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                 <option value="DEGEN" className="bg-panel text-white">Degen (Maximum Risk)</option>
                             </select>
                         </div>
-                        <Button onClick={handleCreate} className="w-full bg-[#3A7BFF] text-white hover:bg-[#3A7BFF]/90 font-bold shadow-lg shadow-blue-900/20 mt-6">
-                            Deploy Agent
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">Stop Loss (%)</label>
+                                <Input
+                                    type="number"
+                                    value={stopLoss}
+                                    onChange={(e) => setStopLoss(e.target.value)}
+                                    placeholder="20"
+                                    className="bg-black/30 border-transparent text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">Take Profit (%)</label>
+                                <Input
+                                    type="number"
+                                    value={takeProfit}
+                                    onChange={(e) => setTakeProfit(e.target.value)}
+                                    placeholder="100"
+                                    className="bg-black/30 border-transparent text-white"
+                                />
+                            </div>
+                        </div>
+                        <Button
+                            onClick={handleCreate}
+                            disabled={isCreating}
+                            className="w-full bg-[#3A7BFF] text-white hover:bg-[#3A7BFF]/90 font-bold shadow-lg shadow-blue-900/20 mt-6"
+                        >
+                            {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Deploy Agent"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Agent Dialog */}
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="bg-panel border-none text-white shadow-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit Agent Settings</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                            Update risk parameters for {editingAgent?.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-200">Agent Name</label>
+                            <Input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="bg-black/30 border-transparent text-white placeholder:text-gray-500"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-200">Risk Profile</label>
+                            <select
+                                value={riskProfile}
+                                onChange={(e) => setRiskProfile(e.target.value)}
+                                className="w-full bg-black/30 border-transparent rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            >
+                                <option value="LOW" className="bg-panel text-white">Conservative (Low Risk)</option>
+                                <option value="MEDIUM" className="bg-panel text-white">Balanced (Medium Risk)</option>
+                                <option value="HIGH" className="bg-panel text-white">Aggressive (High Risk)</option>
+                                <option value="DEGEN" className="bg-panel text-white">Degen (Maximum Risk)</option>
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">Stop Loss (%)</label>
+                                <Input
+                                    type="number"
+                                    value={stopLoss}
+                                    onChange={(e) => setStopLoss(e.target.value)}
+                                    className="bg-black/30 border-transparent text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">Take Profit (%)</label>
+                                <Input
+                                    type="number"
+                                    value={takeProfit}
+                                    onChange={(e) => setTakeProfit(e.target.value)}
+                                    className="bg-black/30 border-transparent text-white"
+                                />
+                            </div>
+                        </div>
+                        <Button
+                            onClick={handleUpdate}
+                            disabled={isUpdating}
+                            className="w-full bg-[#3A7BFF] text-white hover:bg-[#3A7BFF]/90 font-bold shadow-lg shadow-blue-900/20 mt-6"
+                        >
+                            {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
                         </Button>
                     </div>
                 </DialogContent>
@@ -137,9 +278,10 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                         </Button>
                         <Button
                             onClick={confirmDelete}
+                            disabled={isDeleting}
                             className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold"
                         >
-                            Delete Agent
+                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Delete Agent"}
                         </Button>
                     </div>
                 </DialogContent>
@@ -203,6 +345,14 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                         className="text-gray-500 hover:text-red-500 hover:bg-red-500/10"
                                     >
                                         <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => openEdit(agent)}
+                                        className="text-gray-500 hover:text-blue-400 hover:bg-blue-500/10"
+                                    >
+                                        <Settings className="w-4 h-4" />
                                     </Button>
                                 </div>
                             </div>

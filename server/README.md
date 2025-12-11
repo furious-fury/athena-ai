@@ -118,6 +118,15 @@ A two-stage hybrid analysis engine:
 1.  **Macro Scan**: Periodically fetches top 100 markets from Polymarket graph.
 2.  **Micro Analysis**: Selects 5 random high-potential markets per tick for deep LLM analysis.
 
+### Position Manager (Automated Risk)
+Runs at the start of every agent tick to enforce risk limits:
+-   **Stop Loss**: Automatically sells positions if PnL drops below agent's `stopLossPercent`.
+-   **Take Profit**: Automatically sells positions if PnL exceeds agent's `takeProfitPercent`.
+-   **Default Agents**:
+    -   **Conservative**: 20% SL / 100% TP
+    -   **Balanced**: 30% SL / 200% TP
+    -   **Aggressive**: 50% SL / 500% TP
+
 ### Automated Trade Execution
 - **Allowance Checks**: Automatically detects and approves USDC allowances before placing orders.
 - **Decimal Sanitization**: Handles precise floating-point math for reliable trade execution globally.

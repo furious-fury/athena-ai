@@ -158,8 +158,8 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
                                 <div className="relative">
                                     <Input
                                         type="number"
-                                        value={formData.maxTotalExposure}
-                                        onChange={(e) => setFormData({ ...formData, maxTotalExposure: parseFloat(e.target.value) })}
+                                        value={formData.maxTotalExposure || ''}
+                                        onChange={(e) => setFormData({ ...formData, maxTotalExposure: parseFloat(e.target.value) || 0 })}
                                         className="bg-black/20 border-white/10 text-white pr-16 focus-visible:ring-blue-500"
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-mono">USDC</span>
@@ -171,8 +171,8 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
                                 <div className="relative">
                                     <Input
                                         type="number"
-                                        value={formData.tradeCooldownSeconds}
-                                        onChange={(e) => setFormData({ ...formData, tradeCooldownSeconds: parseInt(e.target.value) })}
+                                        value={formData.tradeCooldownSeconds || ''}
+                                        onChange={(e) => setFormData({ ...formData, tradeCooldownSeconds: parseInt(e.target.value) || 0 })}
                                         className="bg-black/20 border-white/10 text-white pr-16 focus-visible:ring-blue-500"
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-mono">SEC</span>

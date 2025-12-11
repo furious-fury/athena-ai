@@ -34,14 +34,32 @@ export const useControlAgent = () => {
     });
 };
 
+export const useUpdateAgent = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ agentId, data }: { agentId: string, data: any }) => {
+            const res = await fetch(`${API_URL}/agents/${agentId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            if (!res.ok) throw new Error("Failed to update agent");
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["agents"] });
+        },
+    });
+};
+
 export const useCreateAgent = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ name, description, riskProfile, userId }: { name: string, description: string, riskProfile: string, userId: string }) => {
+        mutationFn: async ({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent }: { name: string, description: string, riskProfile: string, userId: string, stopLossPercent?: number, takeProfitPercent?: number }) => {
             const res = await fetch(`${API_URL}/agents`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, description, riskProfile, userId }),
+                body: JSON.stringify({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent }),
             });
             if (!res.ok) throw new Error("Failed to create agent");
             return res.json();

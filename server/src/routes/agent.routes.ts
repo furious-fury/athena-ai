@@ -37,7 +37,7 @@ agentRouter.get("/", async (req, res) => {
 // POST /api/agents (Create Agent)
 agentRouter.post("/", async (req, res) => {
     try {
-        const { name, description, riskProfile, userId } = req.body;
+        const { name, description, riskProfile, userId, stopLossPercent, takeProfitPercent } = req.body;
 
         if (!name || !riskProfile) {
             res.status(400).json({ success: false, message: "Name and Risk Profile are required" });
@@ -58,7 +58,9 @@ agentRouter.post("/", async (req, res) => {
                 systemPrompt: systemPrompt,
                 userId: userId || "demo_user", // Fallback for MVP
                 llmProvider: "OPENAI",
-                llmModel: "gpt-5-nano",
+                llmModel: "gpt-4o-mini",
+                stopLossPercent: stopLossPercent ? parseFloat(stopLossPercent) : 20.0,
+                takeProfitPercent: takeProfitPercent ? parseFloat(takeProfitPercent) : 100.0,
                 isActive: false
             }
         });
@@ -75,6 +77,52 @@ agentRouter.post("/", async (req, res) => {
     } catch (err) {
         console.error("Create agent error:", err);
         res.status(500).json({ success: false, message: "Failed to create agent" });
+    }
+});
+
+// PUT /api/agents/:id (Update Agent)
+agentRouter.put("/:id", async (req, res) => {
+    try {
+        const agentId = req.params.id;
+        const { name, description, riskProfile, stopLossPercent, takeProfitPercent, userId } = req.body;
+
+        // Verify ownership (if necessary, simple check)
+        const existing = await prisma.agent.findUnique({ where: { id: agentId } });
+        if (!existing) {
+            res.status(404).json({ success: false, message: "Agent not found" });
+            return;
+        }
+        if (userId && existing.userId !== userId) {
+            res.status(403).json({ success: false, message: "Unauthorized" });
+            return;
+        }
+
+        // If risk profile changed, might want to update system prompt, but keeping it simple for now
+        // or regenerate if needed. Ideally we regenerate prompt if risk/name changes.
+        let systemPrompt = existing.systemPrompt;
+        if (riskProfile && riskProfile !== existing.riskProfile) {
+            const { generateSystemPrompt } = await import("../agents/prompts.js");
+            systemPrompt = generateSystemPrompt(name || existing.name, description || existing.description || "", riskProfile);
+        }
+
+        // Build update object dynamically to satisfy exactOptionalPropertyTypes
+        const updateData: any = {};
+        if (name) updateData.name = name;
+        if (description) updateData.description = description;
+        if (riskProfile) updateData.riskProfile = riskProfile;
+        if (stopLossPercent) updateData.stopLossPercent = parseFloat(stopLossPercent);
+        if (takeProfitPercent) updateData.takeProfitPercent = parseFloat(takeProfitPercent);
+        if (systemPrompt) updateData.systemPrompt = systemPrompt;
+
+        const agent = await prisma.agent.update({
+            where: { id: agentId },
+            data: updateData
+        });
+
+        res.json({ success: true, agent });
+    } catch (err) {
+        console.error("Update agent error:", err);
+        res.status(500).json({ success: false, message: "Failed to update agent" });
     }
 });
 

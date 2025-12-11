@@ -63,12 +63,24 @@ export class AgentLoop {
                 return;
             }
 
-            if (!agent.isActive) {
-                logger.info(`Agent ${this.agentId} is paused. Skipping tick.`);
-                return;
+            // -----------------------------------------------------------------
+            // 0. POSITION MANAGEMENT (Stop Loss / Take Profit) - Runs even if PAUSED
+            // -----------------------------------------------------------------
+            const { PositionManager } = await import("../services/analysis/PositionManager.js");
+            const exitSignals = await PositionManager.evaluatePositions(this.agentId, this.userId);
+
+            if (exitSignals.length > 0) {
+                logger.info(`🚨 Found ${exitSignals.length} positions to exit.`);
+
+                for (const signal of exitSignals) {
+                    await this.executeExit(agent, signal);
+                }
             }
 
-            logger.info(`🤔 Agent ${agent.name} (${agent.riskProfile}) starting news scan...`);
+            if (!agent.isActive) {
+                logger.info(`Agent ${this.agentId} is PAUSED. Position checks complete, skipping new trades.`);
+                return;
+            }
 
             // -----------------------------------------------------------------
             // NEW: News-Driven Logic
@@ -514,11 +526,56 @@ export class AgentLoop {
             logger.info(`💤 ${agent.name} decides to HOLD. Reason: ${decision.reason}`);
         }
 
-        // Release lock in success path
-        this.isProcessing = false;
-
-    } catch(error: any) {
-        logger.error({ error }, `❌ Error in agent tick: ${error.message}`);
-        this.isProcessing = false;
     }
-} // end of executeDecision
+
+    // Helper to execute forced exits (Stop Loss / Take Profit)
+    private async executeExit(agent: any, signal: any) {
+        try {
+            logger.info(`📉 Executing Forced Exit: ${signal.marketQuestion} (${signal.type})`);
+
+            // Log intention
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "DECISION", // Or new type RISK_EXIT
+                message: `Triggered ${signal.type}: Selling ${signal.amount} shares of "${signal.marketQuestion}". Reason: ${signal.reason}`,
+                metadata: { signal }
+            });
+
+            const { TradeService } = await import("../services/TradeService.js");
+
+            // Execute Trade
+            const tradeRequest = {
+                userId: this.userId,
+                agentId: this.agentId,
+                marketId: signal.marketId, // Note: PositionManager returns asset/condition ID usually
+                marketQuestion: signal.marketQuestion,
+                outcome: signal.outcome,
+                amount: signal.amount, // Full size
+                side: "SELL" as "SELL",
+            };
+
+            const result = await TradeService.executeAgentTrade(tradeRequest);
+
+            // Log Success
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "TRADE",
+                message: `✅ EXIT SUCCESSFUL: Sold position in "${signal.marketQuestion}"`,
+                metadata: { result, type: signal.type, reason: signal.reason }
+            });
+
+        } catch (error: any) {
+            logger.error({ error }, `❌ Failed to execute exit for ${signal.marketQuestion}`);
+            await AgentLog.create({
+                agentId: this.agentId,
+                userId: this.userId,
+                type: "RISK_BLOCK", // Using RISK_BLOCK for errors for now
+                message: `Failed to execute forced exit: ${error.message}`,
+                metadata: { error: error.message, signal }
+            });
+        }
+    }
+
+} // end of class

@@ -1,5 +1,0 @@
-(node:14428) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Local Date.now(): 1765244645992
-Local Date: Tue Dec 09 2025 02:44:05 GMT+0100 (West Africa Standard Time)
-Server Response: 1765244644

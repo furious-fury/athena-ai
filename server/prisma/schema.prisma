@@ -62,7 +62,7 @@ model Agent {
   llmModel     String? // e.g. gpt-4.1, claude-3.5, llama3.2  
 
   riskProfile     RiskProfile @default(MEDIUM)
-  pollingInterval Int?        @default(60) // seconds between agent runs  
+  pollingInterval Int?        @default(300) // seconds between agent runs  
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())

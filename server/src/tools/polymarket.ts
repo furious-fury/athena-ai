@@ -57,6 +57,34 @@ export const get_markets = async (limit: number = 20): Promise<Market[]> => {
 };
 
 /**
+ * Search markets by query string (e.g. "Bitcoin", "Election")
+ */
+export const search_markets = async (query: string): Promise<Market[]> => {
+    try {
+        const encoded = encodeURIComponent(query);
+        const response = await fetch(`${GAMMA_API_URL}/markets?active=true&closed=false&question=${encoded}&limit=10&order=volume24hr&ascending=false`);
+
+        if (!response.ok) return [];
+        const data: any = await response.json();
+
+        return data.map((m: any) => ({
+            id: m.id,
+            question: m.question,
+            outcome: "Yes",
+            bestBid: m.bestBid,
+            bestAsk: m.bestAsk,
+            volume24hr: m.volume24hr,
+            questionId: m.questionID,
+            conditionId: m.conditionId,
+            tokenIds: m.clobTokenIds
+        }));
+    } catch (error) {
+        console.error("search_markets error:", error);
+        return [];
+    }
+};
+
+/**
  * Fetches active events (with markets nested)
  */
 export const get_active_events = async (limit: number = 20) => {

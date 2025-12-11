@@ -11,14 +11,15 @@ export class AgentManager {
             return false;
         }
 
-        // Ensure DB state is active
-        await prisma.agent.update({
+        // Ensure DB state is active and get config
+        const agent = await prisma.agent.update({
             where: { id: agentId },
             data: { isActive: true }
         });
 
         const loop = new AgentLoop(userId, agentId);
-        loop.start(60000); // Start with 60s interval (runs immediately first)
+        const interval = (agent.pollingInterval || 300) * 1000;
+        loop.start(interval);
         this.activeLoops.set(agentId, loop);
         return true;
     }
@@ -91,9 +92,10 @@ export class AgentManager {
             for (const agent of activeAgents) {
                 if (!this.activeLoops.has(agent.id)) {
                     const loop = new AgentLoop(agent.userId, agent.id);
-                    loop.start(60000);
+                    const interval = (agent.pollingInterval || 300) * 1000;
+                    loop.start(interval);
                     this.activeLoops.set(agent.id, loop);
-                    logger.info(`Restored agent loop: ${agent.name} (${agent.id})`);
+                    logger.info(`Restored agent loop: ${agent.name} (${agent.id}) running every ${interval / 1000}s`);
                 }
             }
         } catch (error) {

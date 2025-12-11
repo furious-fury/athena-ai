@@ -1,1 +1,0 @@
-{"version":3,"file":"AgentLoop.d.ts","sourceRoot":"","sources":["../../src/agents/AgentLoop.ts"],"names":[],"mappings":"AAiBA,qBAAa,SAAS;IAClB,OAAO,CAAC,OAAO,CAAS;IACxB,OAAO,CAAC,MAAM,CAAS;IACvB,OAAO,CAAC,OAAO,CAAkB;IACjC,OAAO,CAAC,QAAQ,CAA+B;gBAEnC,MAAM,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM;IAK3C,KAAK,CAAC,UAAU,GAAE,MAAc;IAWhC,IAAI;YAMU,IAAI;CAmMrB"}

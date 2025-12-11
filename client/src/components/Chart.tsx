@@ -46,7 +46,7 @@ function Chart({ data, className }: ChartProps) {
                 {mounted ? (
                     <div className="absolute inset-0">
                         <ResponsiveContainer width="100%" height="100%">
-                            {/* @ts-ignore: Render prop pattern is robust but types are strict */}
+                            {/* @ts-expect-error: Render prop pattern is robust but types are strict */}
                             {({ width, height }: { width: number; height: number }) => {
                                 if (width && height && width > 0 && height > 0) {
                                     return (

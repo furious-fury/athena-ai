@@ -17,6 +17,8 @@ The frontend interface for the Athena AI Agentic Trading Platform. Built with Re
 - **Market Explorer**: visual interface to explore available markets and opportunities.
 - **Wallet Integration**: Seamless connection with Web3 wallets for funding and withdrawals.
 - **Activity Feed**: Live feed of agent actions and trade executions.
+- **Instant Updates**: Optimistic UI ensures actions like selling or importing reflect immediately.
+- **Auto-Refresh**: Trade history and positions automatically sync every 5 seconds.
 - **Dark Mode**: Sleek, specialized dark interface for professional traders.
 
 ## 🚀 Setup & Installation

@@ -108,5 +108,16 @@ npm start
 - **Server Entry**: `src/server.ts` initializes Redis, Agent Workers, and the Express App.
 - **Agents**: Logic for trading agents is encapsulated in `src/agents`.
 - **Workers**: `src/workers` contains `AgentWorker` which runs in the background to process trade jobs from the queue.
-- **Services**: Business logic is separated into services (`TradeService`, `RiskService`, `PortfolioService`).
+- **Services**: Business logic is separated into services (`TradeService`, `RiskService`, `PortfolioService`, `ActiveMarketScanner`).
 - **Tools**: Integrations with external APIs (Polymarket, etc.) are in `src/tools`.
+
+## 🧠 Core Services
+
+### Active Market Scanner
+A two-stage hybrid analysis engine:
+1.  **Macro Scan**: Periodically fetches top 100 markets from Polymarket graph.
+2.  **Micro Analysis**: Selects 5 random high-potential markets per tick for deep LLM analysis.
+
+### Automated Trade Execution
+- **Allowance Checks**: Automatically detects and approves USDC allowances before placing orders.
+- **Decimal Sanitization**: Handles precise floating-point math for reliable trade execution globally.

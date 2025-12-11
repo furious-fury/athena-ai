@@ -58,6 +58,9 @@ npm run dev
   - **Politics (3 sources)**: Politico, Politico EU, NYT Politics
   - **Market Data**: Live CoinGecko API integration for trending cryptocurrencies
 - **AI Signal Processing**: LLM-powered analysis (OpenAI/Gemini) extracts high-confidence trading signals with reasoning.
+- **Active Market Scanning**: Two-stage hybrid filtering process:
+  - **Fast Heuristic Filter**: Scans top 100 markets by volume/activity instantly.
+  - **Deep Analysis**: Selects 5 promising candidates for targeted LLM evaluation per tick.
 - **Smart Market Matching**: Automatically searches Polymarket for relevant prediction markets based on detected signals.
 
 ### Enhanced Activity Logging
@@ -65,10 +68,15 @@ npm run dev
 - **Visual Log Types**: Distinct UI indicators for different event types (📡 Data Fetch, 🛡️ Risk Assessment, 📝 Decisions).
 - **AI Reasoning Display**: Collapsible sections show the AI's thought process behind each trade decision.
 
-### Security & Privacy
 - **End-to-End Encryption**: User private keys encrypted at rest using AES-256-GCM with HKDF key derivation.
 - **Per-User Key Isolation**: Each user's data is cryptographically isolated with unique derived keys.
 - **Secure Key Management**: Master encryption key stored in environment variables, never exposed to clients.
+- **Automated Allowance Checks**: Smart contract allowances are verified and approved automatically before trading.
+
+### User Experience (UX) 2.0
+- **Live Auto-Refresh**: Trade History and Active Positions update dynamically (every 5s) without page reloads.
+- **Optimistic UI**: Instant feedback on user actions (Closing positions, Importing wallets).
+- **Persistent Navigation**: URL-based tab state ensures you never lose your place on refresh.
 
 ## 📚 Documentation
 

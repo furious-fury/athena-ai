@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 interface Agent {
     id: string;
@@ -19,7 +21,9 @@ interface Trade {
 }
 
 export default function Dashboard() {
-    const { address, isConnected } = useAccount();
+    const { publicKey, connected } = useWallet();
+    const address = publicKey?.toString();
+    const isConnected = connected;
 
     console.log("Dashboard Render:", { isConnected, address });
 
@@ -51,7 +55,7 @@ export default function Dashboard() {
     const loginUser = async (walletAddress: string) => {
         console.log("loginUser function called for", walletAddress);
         try {
-            const res = await fetch("http://localhost:5000/api/auth/login", {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ walletAddress })
@@ -70,7 +74,7 @@ export default function Dashboard() {
     const fetchAgents = async () => {
         try {
             if (!dbUserId) return;
-            const res = await fetch(`http://localhost:5000/api/agents?userId=${dbUserId}`);
+            const res = await fetch(`${API_URL}/agents?userId=${dbUserId}`);
             const data = await res.json();
             if (data.success) setAgents(data.agents);
         } catch (err) {
@@ -82,7 +86,7 @@ export default function Dashboard() {
         if (!dbUserId) return; // Need DB ID, not just address
         try {
             // NOTE: The trade history endpoint currently expects a user ID (database ID)
-            const res = await fetch(`http://localhost:5000/api/trade/history/${dbUserId}`);
+            const res = await fetch(`${API_URL}/trade/history/${dbUserId}`);
             const data = await res.json();
             if (data.success) setTrades(data.trades);
         } catch (err) {
@@ -94,7 +98,7 @@ export default function Dashboard() {
         if (!dbUserId) return;
         try {
             const endpoint = isRunning ? "stop" : "start";
-            const res = await fetch(`http://localhost:5000/api/agents/${agentId}/${endpoint}`, {
+            const res = await fetch(`${API_URL}/agents/${agentId}/${endpoint}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId: dbUserId }) // Pass DB ID

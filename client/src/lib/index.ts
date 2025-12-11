@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 
-const url = 'http://localhost:5000/api/markets';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const url = `${API_URL}/markets`;
 
 
 

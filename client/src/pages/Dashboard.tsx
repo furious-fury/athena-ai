@@ -71,7 +71,7 @@ export default function Dashboard() {
         }
     }
 
-     
+
     const fetchAgents = async () => {
         try {
             if (!dbUserId) return;
@@ -140,6 +140,15 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gray-900 p-8 text-white">
+            <div className="mb-6 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-200">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                    <span className="text-lg">⚠️</span>
+                    <span>
+                        <span className="font-bold">Notice:</span> Trade execution and data such as trades, prices, and positions may be delayed due to issues with Polygon. Please trade with caution.
+                    </span>
+                </p>
+            </div>
+
             <header className="mb-8 flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Dashboard</h1>
                 <div className="text-sm text-gray-400">

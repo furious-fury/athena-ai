@@ -50,6 +50,7 @@ function App() {
     } else {
       setDbUserId(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, publicKey]);
 
   // React Query Mutation

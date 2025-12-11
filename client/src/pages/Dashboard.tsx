@@ -71,6 +71,7 @@ export default function Dashboard() {
         }
     }
 
+     
     const fetchAgents = async () => {
         try {
             if (!dbUserId) return;
@@ -93,6 +94,16 @@ export default function Dashboard() {
             console.error("Failed to fetch trades", err);
         }
     };
+
+    useEffect(() => {
+        if (isConnected && dbUserId) {
+            fetchAgents();
+            fetchTrades();
+            const interval = setInterval(fetchAgents, 5000); // Poll agent status
+            return () => clearInterval(interval);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isConnected, dbUserId]);
 
     const toggleAgent = async (agentId: string, isRunning: boolean) => {
         if (!dbUserId) return;

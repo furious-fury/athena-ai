@@ -98,8 +98,8 @@ export default function TransactionHistory({ userId, className }: TransactionHis
 
             {!isLoading && !isEmpty && (
                 <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
-                    {allEvents.map((tx: any) => (
-                        <div key={tx.id || Math.random()} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors group">
+                    {allEvents.map((tx: any, index: number) => (
+                        <div key={tx.id || `tx-${index}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.eventType === 'TRADE'
                                     ? (tx.side === 'BUY' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400')
@@ -115,7 +115,7 @@ export default function TransactionHistory({ userId, className }: TransactionHis
                                         {tx.eventType === 'TRADE' ? `${tx.side} ${tx.outcome}` : tx.eventType}
                                     </p>
                                     <p className="text-xs text-text-secondary">
-                                        {new Date(tx.timestamp || tx.createdAt || Date.now()).toLocaleDateString()}
+                                        {new Date(tx.timestamp || tx.createdAt || new Date().toISOString()).toLocaleDateString()}
                                     </p>
                                 </div>
                             </div>

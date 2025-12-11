@@ -2,7 +2,6 @@ import type { WalletClient } from "viem";
 import { getAddress } from "viem";
 
 // Import SDK internals directly to ensure exact logic matching
-// @ts-ignore
 import { createL1Headers } from "@polymarket/clob-client/dist/headers";
 
 const CLOB_API_URL = "https://clob.polymarket.com";
@@ -66,7 +65,7 @@ export async function deriveClobApiKey(walletClient: WalletClient, address: stri
 
     // 3. Generate Headers using SDK function
     console.log("[clobAuth] Calling createL1Headers...");
-    // @ts-ignore - Adapter doesn't fully implement Signer interface but has required methods
+    // @ts-expect-error Using custom provider type - Adapter doesn't fully implement Signer interface but has required methods
     const headers = await createL1Headers(signer as any, chainId, nonce, timestamp);
     console.log("[clobAuth] Generated Key Headers:", headers);
 

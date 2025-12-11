@@ -188,7 +188,7 @@ export default function MarketExplorer() {
                         <div className="flex gap-1">
                             {(() => {
                                 let startPage = Math.max(1, currentPage - 4);
-                                let endPage = Math.min(totalPages, startPage + 9);
+                                const endPage = Math.min(totalPages, startPage + 9);
 
                                 if (endPage - startPage < 9) {
                                     startPage = Math.max(1, endPage - 9);

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/server.js",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "dev": "nodemon -e ts,json --ignore dist/ --exec \"npx tsc && node dist/server.js\""
   },
   "keywords": [],

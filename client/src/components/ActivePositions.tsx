@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Ghost, History, Activity } from "lucide-react";
-import { useUserPositions, useTrades, useUserBalance, usePortfolioHistory } from "../lib/api";
+import { useUserPositions, useTrades, useUserBalance, usePortfolioHistory, useClosePosition } from "../lib/api";
 import TradeHistory from "./TradeHistory";
 import {
     Dialog,
@@ -31,16 +31,18 @@ export default function ActivePositions({ userId, className }: ActivePositionsPr
     const [tab, setTab] = useState<"positions" | "history">("positions");
 
     // Hooks
-    const { data: positions, isLoading, refetch: refetchPositions } = useUserPositions(userId || "");
-    const { refetch: refetchTrades } = useTrades(userId || "");
-    const { refetch: refetchBalance } = useUserBalance(userId || "");
-    const { refetch: refetchHistory } = usePortfolioHistory(userId || "");
+    const { data: positions, isLoading } = useUserPositions(userId || "");
+    useTrades(userId || "");
+    useUserBalance(userId || "");
+    usePortfolioHistory(userId || "");
 
     const [closingId, setClosingId] = useState<string | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<any | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const isEmpty = !isLoading && (!positions || positions.length === 0);
+
+    const closePositionMutation = useClosePosition();
 
     const handleClosePosition = async () => {
         if (!userId || !selectedPosition) return;
@@ -50,27 +52,21 @@ export default function ActivePositions({ userId, className }: ActivePositionsPr
         setIsDialogOpen(false); // Close dialog immediately
 
         try {
-            const res = await fetch("/api/trade/close", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, marketId, outcome })
+            await closePositionMutation.mutateAsync({
+                userId,
+                marketId,
+                outcome
             });
-            const data = await res.json();
-            if (data.success) {
-                toast.success(`Successfully sold ${outcome} position!`);
 
-                // Optimistic UI update: Wait 1s for backend/indexer, then refetch ALL relevant data
-                setTimeout(() => {
-                    refetchPositions();
-                    refetchTrades();
-                    refetchBalance();
-                    refetchHistory();
-                }, 1000);
-            } else {
-                toast.error("Failed to close position: " + data.error);
-            }
-        } catch (e) {
-            toast.error("Error closing position");
+            toast.success(`Successfully sold ${outcome} position!`);
+
+            // Refetch is handled by mutation onSuccess (invalidating queries)
+            // But we can keep explicit refetch here if we want double assurance, 
+            // though invalidateQueries is cleaner.
+            // Let's rely on invalidateQueries in the hook.
+
+        } catch (e: any) {
+            toast.error("Failed to close position: " + e.message);
         } finally {
             setClosingId(null);
             setSelectedPosition(null);

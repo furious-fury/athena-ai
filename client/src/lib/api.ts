@@ -95,6 +95,7 @@ export const useTrades = (userId: string) => {
             return data.trades; // Extract trades array from response
         },
         enabled: !!userId,
+        refetchInterval: 5000,
     });
 };
 
@@ -231,6 +232,7 @@ export const useUserPositions = (userId: string) => {
         enabled: !!userId,
         // count 0 shares as closed, so we might want to filter them out here or in UI
         select: (positions: any[]) => positions.filter((p: any) => p.shares > 0),
+        refetchInterval: 5000,
     });
 };
 
@@ -273,5 +275,67 @@ export const usePortfolioHistory = (userId: string) => {
         },
         enabled: !!userId,
         refetchInterval: 30000, // Update every 30s
+    });
+};
+
+// --- New Mutations for Refactor ---
+
+export const useLoginUser = () => {
+    return useMutation({
+        mutationFn: async (walletAddress: string) => {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ walletAddress })
+            });
+            if (!res.ok) throw new Error("Failed to login");
+            return res.json();
+        }
+    });
+};
+
+export const useImportWallet = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ userId, privateKey, proxyAddress }: { userId: string, privateKey: string, proxyAddress: string }) => {
+            const res = await fetch(`${API_URL}/user/proxy/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, privateKey, proxyAddress }),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to import wallet');
+            }
+            return res.json();
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userSettings', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['proxyWallet', variables.userId] });
+        }
+    });
+};
+
+export const useClosePosition = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ userId, marketId, outcome }: { userId: string, marketId: string, outcome: string }) => {
+            const res = await fetch(`${API_URL}/trade/close`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, marketId, outcome })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || "Failed to close position");
+            return data;
+        },
+        onSuccess: (_, variables) => {
+            // Invalidate all relevant queries to trigger immediate UI update
+            queryClient.invalidateQueries({ queryKey: ['positions', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['trades', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['balance', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['portfolioHistory', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['activity', variables.userId] });
+        }
     });
 };

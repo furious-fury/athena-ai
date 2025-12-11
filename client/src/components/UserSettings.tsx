@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { useUserSettings, useUpdateSettings } from "../lib/api";
+import { useUserSettings, useUpdateSettings, useImportWallet } from "../lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShieldAlert, Wallet, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface UserSettingsProps {
     dbUserId: string;
@@ -13,9 +12,6 @@ interface UserSettingsProps {
 export default function UserSettings({ dbUserId }: UserSettingsProps) {
     const { data: settings } = useUserSettings(dbUserId);
     const updateSettings = useUpdateSettings();
-    // useSetProxyWallet is no longer used for manual setting, but we might keep the hook or just ignore it 
-    // The new flow uses direct fetch for creation.
-    const queryClient = useQueryClient();
 
     const [formData, setFormData] = useState({
         maxTradeAmount: 100,
@@ -75,27 +71,21 @@ export default function UserSettings({ dbUserId }: UserSettingsProps) {
         }
     };
 
+    const importWalletMutation = useImportWallet();
+
     const handleImportProxy = async () => {
         setIsCreatingProxy(true);
         try {
-            const res = await fetch('http://localhost:5000/api/user/proxy/import', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: dbUserId,
-                    privateKey: importPK,
-                    proxyAddress: importProxy
-                }),
+            const data = await importWalletMutation.mutateAsync({
+                userId: dbUserId,
+                privateKey: importPK,
+                proxyAddress: importProxy
             });
 
-            const data = await res.json();
-
-            if (!res.ok) throw new Error(data.error || 'Failed to import wallet');
-
             setMessage({ type: "success", text: "Wallet imported successfully!" });
-
             setProxyWalletAddress(data.address);
-            queryClient.invalidateQueries({ queryKey: ['userSettings', dbUserId] });
+
+            // Query invalidation handled in hook onSuccess
 
         } catch (error: any) {
             setMessage({ type: "error", text: error.message || "Failed to import wallet" });

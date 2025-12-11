@@ -15,7 +15,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import GlobalActivityFeed from './components/GlobalActivityFeed';
 import DashboardStats from './components/DashboardStats';
-import { useUserSettings } from './lib/api';
+import { useUserSettings, useLoginUser } from './lib/api';
 import { Zap } from 'lucide-react';
 
 
@@ -52,16 +52,15 @@ function App() {
     }
   }, [connected, publicKey]);
 
+  // React Query Mutation
+  const loginMutation = useLoginUser();
+
   const loginUser = async (walletAddress: string) => {
     try {
       console.log("App: Logging in with address:", walletAddress);
 
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress })
-      });
-      const data = await res.json();
+      const data = await loginMutation.mutateAsync(walletAddress);
+
       if (data.success) {
         // console.log("App: Logged in, DB ID:", data.user.id);
         setDbUserId(data.user.id);

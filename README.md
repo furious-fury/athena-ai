@@ -78,10 +78,23 @@ npm run dev
 - **Optimistic UI**: Instant feedback on user actions (Closing positions, Importing wallets).
 - **Persistent Navigation**: URL-based tab state ensures you never lose your place on refresh.
 
-## 📚 Documentation
+## 🚀 Deployment
 
-Detailed documentation for each part of the stack can be found in their respective directories:
+**Recommended Architecture: Hybrid Deployment**
 
-- [Client Documentation](./client/README.md)
-- [Server Documentation](./server/README.md)
+*   **Frontend**: Hosted on **Vercel** (Global CDN, SSL).
+*   **Backend**: Hosted on **Docker** (VPS).
+
+### Quick Start (VPS/Docker)
+1.  **Install**: Copy and run `setup.sh` on your VPS.
+2.  **Start**: Run `docker compose up -d --build`.
+3.  **Link**: Set `VITE_API_URL` in Vercel to your VPS IP.
+
+### Alternative: deployment on Render ☁️
+This project includes a `render.yaml` Blueprint.
+1.  Push code to GitHub.
+2.  Go to Render Dashboard -> **Blueprints** -> New Blueprint Instance.
+3.  Connect your repo. Render will auto-deploy Server, Client, Postgres, and Redis.
+
+See **[Deployment Guide](deployment.md)** for detailed instructions.
 

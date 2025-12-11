@@ -37,6 +37,9 @@ jobs:
     defaults:
       run:
         working-directory: ./server
+    env:
+      DATABASE_URL: "postgresql://user:password@localhost:5432/dbname"
+      DIRECT_URL: "postgresql://user:password@localhost:5432/dbname"
     steps:
       - uses: actions/checkout@v4
       

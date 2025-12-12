@@ -14,11 +14,11 @@ export function SolutionsSection() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <SolutionCard icon={<Bot />} title="Autonomous Agents" desc="Deploy agents that run 24/7 with auto-maintenance modes." />
-                        <SolutionCard icon={<Zap />} title="Fast Execution" desc="On-chain trades via high-speed proxies to bypass congestion." />
+                        <SolutionCard icon={<Bot />} title="Autonomous Agents" desc="Deploy agents that run 24/7 with auto maintenance modes." />
+                        <SolutionCard icon={<Zap />} title="Fast Execution" desc="On-chain trades via high speed proxies to bypass congestion." />
                         <SolutionCard icon={<Lock />} title="Secure Enclave" desc="Per-user key isolation with AES-256 encryption." />
-                        <SolutionCard icon={<TrendingUp />} title="Risk Controls" desc="Automated Stop-Loss, Take-Profit, and Exposure Limits." />
-                        <SolutionCard icon={<BarChart2 />} title="Live Analytics" desc="Real-time performance tracking and decision logging." />
+                        <SolutionCard icon={<TrendingUp />} title="Risk Controls" desc="Automated Stop Loss, Take Profit, and Exposure Limits." />
+                        <SolutionCard icon={<BarChart2 />} title="Live Analytics" desc="Real time performance tracking and decision logging." />
                         <SolutionCard icon={<Cpu />} title="LLM Analysis" desc="Custom LLM models trained for complex market reasoning." />
                     </div>
                 </div>

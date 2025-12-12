@@ -40,7 +40,7 @@ export function RoadmapSection() {
                             time="Current"
                             title="Beta Launch"
                             status="active"
-                            items={["Core Agent Engine", "Polymarket Integration", "Real-time News Analysis", "Risk Controls", "Token Launch"]}
+                            items={["Core Agent Engine", "Polymarket Integration", "Real time News Analysis", "Risk Controls", "Token Launch"]}
                         />
                     </div>
                     <div className="relative z-10 h-full">
@@ -49,7 +49,7 @@ export function RoadmapSection() {
                             time="Q1 2026"
                             title="Expansion"
                             status="upcoming"
-                            items={["Mobile App (iOS/Android)", "Social Trading & Leaderboards", "Advanced Portfolio Analytics", "Custom Agent Scripts"]}
+                            items={["Mobile App (iOS/Android)", "Social Trading & Leaderboards", "Advanced Portfolio Analytics", "Fully Custom Agent", "Customizable PnL"]}
                         />
                     </div>
                     <div className="relative z-10 h-full">
@@ -58,7 +58,7 @@ export function RoadmapSection() {
                             time="Q2 2026"
                             title="Decentralization"
                             status="upcoming"
-                            items={["DAO Governance", "Decentralized Agent Network", "Cross-Chain Support"]}
+                            items={["DAO Governance", "Decentralized Agent Network", "Cross Chain Support"]}
                         />
                     </div>
                 </div>

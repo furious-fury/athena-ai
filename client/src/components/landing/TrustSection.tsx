@@ -13,15 +13,15 @@ export function TrustSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
                     <LargeCard
-                        title="News-Driven Intelligence"
+                        title="News Driven Intelligence"
                         description="Our agents ingest data from 14+ premium sources including Bloomberg, CoinDesk, and TechCrunch. We use LLMs to extract high-confidence signals and instantly match them to prediction markets."
                         action="View Sources"
                         gradient="bg-linear-to-br from-blue-900/40 to-transparent"
                         icon={<Newspaper className="w-12 h-12 text-blue-400 mb-6" />}
                     />
                     <LargeCard
-                        title="Institutional-Grade Security"
-                        description="Non-custodial architecture means your funds never leave your wallet until execution. Private keys are encrypted at rest using AES-256-GCM with HKDF key derivation."
+                        title="Institutional Grade Security"
+                        description="Non custodial architecture means your funds never leave your wallet until execution. Private keys are encrypted at rest using AES-256-GCM with HKDF key derivation."
                         action="Learn More"
                         gradient="bg-linear-to-br from-purple-900/40 to-transparent"
                         icon={<Shield className="w-12 h-12 text-purple-400 mb-6" />}

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, Globe, Coins, DollarSign, Activity } from 'lucide-react';
-import { TickerCard } from '../components/landing/TickerCard';
+import { ArrowRight, Bot, DollarSign } from 'lucide-react';
+// import { Globe, Coins, Activity } from 'lucide-react';
+// import { TickerCard } from '../components/landing/TickerCard';
 import { TrustSection } from '../components/landing/TrustSection';
 import { SolutionsSection } from '../components/landing/SolutionsSection';
 import { RoadmapSection } from '../components/landing/RoadmapSection';
@@ -18,14 +19,14 @@ function LandingPage() {
                     <a href="#" className="w-1/3 md:w-1/5">
                         <img src="logo.png" alt="" />
                     </a>
-                    <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                    {/* <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
                         <button
                             onClick={() => navigate('/trade')}
                             className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-hidden focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2 text-center mr-2 transition-all shadow-lg shadow-blue-500/20"
                         >
                             Launch App
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </nav>
 
@@ -43,7 +44,7 @@ function LandingPage() {
                     <FadeIn delay={0.1}>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 mb-8 backdrop-blur-sm">
                             <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            AI-Powered Agentic Trading Platform
+                            AI Powered Agentic Trading Platform
                         </div>
                     </FadeIn>
 
@@ -56,7 +57,7 @@ function LandingPage() {
 
                     <FadeIn delay={0.3}>
                         <p className="max-w-2xl mx-auto text-xl text-gray-400 mb-10 leading-relaxed">
-                            Deploy AI agents that analyze real-time news, execute trades on Polymarket, and manage risk 24/7.
+                            Deploy AI agents that analyze real time news, execute trades on Polymarket, and manage risk 24/7.
                         </p>
                     </FadeIn>
 
@@ -76,17 +77,17 @@ function LandingPage() {
                     </FadeIn>
 
                     {/* Floating 3D Elements (Visual Decoration) */}
-                    <FadeIn delay={0.6} direction="left" className="absolute top-[20%] left-[5%] animate-bounce duration-3000 opacity-60 hidden xl:block z-0">
+                    <FadeIn delay={0.6} direction="left" className="absolute top-[20%] left-[5%] animate-bounce duration-3000 opacity-60 hidden xl:block z-[-1]">
                         <div className="w-24 h-24 bg-linear-to-br from-purple-500/20 to-transparent backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-center transform rotate-12">
                             <Bot className="w-12 h-12 text-purple-400" />
                         </div>
                     </FadeIn>
-                    <FadeIn delay={0.7} direction="right" className="absolute bottom-[20%] right-[30%] animate-bounce duration-4000 opacity-60 hidden xl:block z-0">
+                    <FadeIn delay={0.7} direction="right" className="absolute bottom-[-25%] right-[25%] animate-bounce duration-4000 opacity-60 hidden xl:block z-[-1]">
                         <div className="w-20 h-20 bg-linear-to-br from-emerald-500/20 to-transparent backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center transform -rotate-12">
                             <DollarSign className="w-10 h-10 text-emerald-400" />
                         </div>
                     </FadeIn>
-                    <FadeIn delay={0.8} direction="right" className="absolute top-[30%] right-[12%] animate-bounce duration-5000 opacity-50 hidden xl:block z-0">
+                    <FadeIn delay={0.8} direction="right" className="absolute top-[30%] right-[12%] animate-bounce duration-5000 opacity-50 hidden xl:block z-[-1]">
                         <div className="w-16 h-16 bg-linear-to-br from-blue-500/50 to-transparent backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center transform rotate-6">
                             {/* <Bitcoin className="w-8 h-8 text-orange-400" /> */}
                             <img src="/icon-white.png" className='w-8 h-8' alt="" />
@@ -94,7 +95,7 @@ function LandingPage() {
                     </FadeIn>
 
                     {/* Overlapping Stats/Ticker Cards */}
-                    <FadeIn delay={0.5}>
+                    {/* <FadeIn delay={0.5}>
                         <div className="relative md:-mb-36 z-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto transform translate-y-12">
                             <TickerCard
                                 icon={<Coins className="text-yellow-400" />}
@@ -115,7 +116,7 @@ function LandingPage() {
                                 trend="Polymarket & More"
                             />
                         </div>
-                    </FadeIn>
+                    </FadeIn> */}
                 </div>
             </section>
 
@@ -161,8 +162,6 @@ function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
                     <p>&copy; {new Date().getFullYear()} Athena AI. All rights reserved.</p>
                     <div className="mt-4 flex justify-center gap-6 text-sm">
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
                         <a href="https://x.com/AthennaAI" target="_blank" className="hover:text-white transition-colors">Twitter</a>
                     </div>
                 </div>

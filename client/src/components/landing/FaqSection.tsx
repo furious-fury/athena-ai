@@ -12,7 +12,7 @@ export function FaqSection() {
                 <div className="space-y-4">
                     <FaqItem
                         question="Is my fund safe?"
-                        answer="Yes. Athena is non-custodial. We never hold your funds. You deposit directly into your own smart contract wallet that only you control."
+                        answer="Yes. Athena is non custodial. We never hold your funds. You deposit directly into your own smart contract wallet that only you control."
                     />
                     <FaqItem
                         question="How do the agents work?"
@@ -20,7 +20,7 @@ export function FaqSection() {
                     />
                     <FaqItem
                         question="Can I customize the strategies?"
-                        answer="Currently in Beta, you can select from pre-defined agent personas (Conservative, Aggressive, etc.) or create your semi-custom agent. Full custom scripting is coming in Phase 2."
+                        answer="Currently in Beta, you can select from predefined agent personas (Conservative, Aggressive, etc.) or create your semi custom agent. Full custom scripting is coming in Phase 2."
                     />
                     <FaqItem
                         question="What markets are supported?"

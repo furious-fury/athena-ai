@@ -102,3 +102,12 @@ This project includes a `render.yaml` Blueprint.
 
 See **[Deployment Guide](deployment.md)** for detailed instructions.
 
+### 🛡️ Proxy Configuration (Cloudflare Bypass)
+To trade on Polymarket from a VPS (Contabo/AWS), you must use a Residential Proxy to avoid 403 blocks.
+1.  **Get a Proxy**: Buy a "Static Residential" proxy (e.g., Webshare, IPRoyal).
+2.  **Configure**: Add to `server/.env`:
+    ```env
+    POLY_PROXY_URL=http://username:password@host:port
+    ```
+3.  **Deploy**: The system will automatically route all trading traffic through this proxy.
+

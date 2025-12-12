@@ -176,17 +176,58 @@
 
 @layer utilities {
     @keyframes marquee {
-        0% { transform: translateX(0%); }
-        100% { transform: translateX(-100%); }
+        0% {
+            transform: translateX(0%);
+        }
+
+        100% {
+            transform: translateX(-100%);
+        }
     }
+
     @keyframes marquee2 {
-        0% { transform: translateX(100%); }
-        100% { transform: translateX(0%); }
+        0% {
+            transform: translateX(100%);
+        }
+
+        100% {
+            transform: translateX(0%);
+        }
     }
+
     .animate-marquee {
         animation: marquee 25s linear infinite;
     }
+
     .animate-marquee2 {
         animation: marquee2 25s linear infinite;
+    }
+
+    /* Custom Overrides for Solana Wallet Adapter */
+    .wallet-adapter-button-trigger {
+        background-color: #2563EB !important;
+        /* blue-600 */
+        border-radius: 0.75rem !important;
+        /* rounded-xl */
+        font-family: inherit !important;
+        font-weight: 600 !important;
+        height: 48px !important;
+        padding: 0 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -1px rgba(37, 99, 235, 0.06) !important;
+    }
+
+    .wallet-adapter-button-trigger:hover {
+        background-color: #1d4ed8 !important;
+        /* blue-700 */
+        transform: translateY(-1px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -2px rgba(37, 99, 235, 0.1) !important;
+    }
+
+    .wallet-adapter-button-trigger:not([disabled]):focus-visible {
+        outline-color: white !important;
     }
 }

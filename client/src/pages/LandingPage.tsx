@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, Globe, Coins, DollarSign, Activity, Bitcoin } from 'lucide-react';
+import { ArrowRight, Bot, Globe, Coins, DollarSign, Activity } from 'lucide-react';
 import { TickerCard } from '../components/landing/TickerCard';
 import { TrustSection } from '../components/landing/TrustSection';
 import { SolutionsSection } from '../components/landing/SolutionsSection';
@@ -77,18 +77,19 @@ function LandingPage() {
 
                     {/* Floating 3D Elements (Visual Decoration) */}
                     <FadeIn delay={0.6} direction="left" className="absolute top-[20%] left-[5%] animate-bounce duration-3000 opacity-60 hidden xl:block z-0">
-                        <div className="w-24 h-24 bg-linear-to-br from-blue-500/20 to-transparent backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-center transform rotate-12">
-                            <Bot className="w-12 h-12 text-blue-400" />
+                        <div className="w-24 h-24 bg-linear-to-br from-purple-500/20 to-transparent backdrop-blur-md rounded-2xl border border-white/10 flex items-center justify-center transform rotate-12">
+                            <Bot className="w-12 h-12 text-purple-400" />
                         </div>
                     </FadeIn>
-                    <FadeIn delay={0.7} direction="right" className="absolute bottom-[20%] right-[10%] animate-bounce duration-4000 opacity-60 hidden xl:block z-0">
-                        <div className="w-20 h-20 bg-linear-to-br from-purple-500/20 to-transparent backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center transform -rotate-12">
-                            <DollarSign className="w-10 h-10 text-purple-400" />
+                    <FadeIn delay={0.7} direction="right" className="absolute bottom-[20%] right-[30%] animate-bounce duration-4000 opacity-60 hidden xl:block z-0">
+                        <div className="w-20 h-20 bg-linear-to-br from-emerald-500/20 to-transparent backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center transform -rotate-12">
+                            <DollarSign className="w-10 h-10 text-emerald-400" />
                         </div>
                     </FadeIn>
-                    <FadeIn delay={0.8} direction="right" className="absolute top-[40%] right-[15%] animate-bounce duration-5000 opacity-50 hidden xl:block z-0">
-                        <div className="w-16 h-16 bg-linear-to-br from-orange-500/20 to-transparent backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center transform rotate-6">
-                            <Bitcoin className="w-8 h-8 text-orange-400" />
+                    <FadeIn delay={0.8} direction="right" className="absolute top-[30%] right-[12%] animate-bounce duration-5000 opacity-50 hidden xl:block z-0">
+                        <div className="w-16 h-16 bg-linear-to-br from-blue-500/50 to-transparent backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center transform rotate-6">
+                            {/* <Bitcoin className="w-8 h-8 text-orange-400" /> */}
+                            <img src="/icon-white.png" className='w-8 h-8' alt="" />
                         </div>
                     </FadeIn>
 

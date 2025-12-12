@@ -1,12 +1,9 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 # Copy source code (Moved up for debugging context)
 COPY . .
-
-# Debug: List files to confirm package.json exists
-RUN ls -R
 
 # Install production dependencies
 RUN npm install --legacy-peer-deps

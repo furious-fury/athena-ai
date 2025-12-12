@@ -2,14 +2,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy dependency definitions
-COPY package*.json ./
+# Copy source code (Moved up for debugging context)
+COPY . .
+
+# Debug: List files to confirm package.json exists
+RUN ls -R
 
 # Install production dependencies
 RUN npm install --legacy-peer-deps
-
-# Copy source code
-COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate

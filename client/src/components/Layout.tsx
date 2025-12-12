@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Header from "./Header";
 import {
     LayoutDashboard,
@@ -50,9 +51,9 @@ function Layout({ children, activeTab = 'dashboard', setActiveTab }: LayoutProps
                 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl shadow-purple-500/20' : '-translate-x-full'}
             `}>
                 <div className="p-6 flex items-center justify-between">
-                    <h1 className="text-3xl font-bold bg-linear-to-b from-accent to-purple-500 bg-clip-text text-transparent">
-                        Athena AI
-                    </h1>
+                    <Link to="/">
+                        <img src="logo.png" alt="" />
+                    </Link>
                     {/* Close button for mobile */}
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}

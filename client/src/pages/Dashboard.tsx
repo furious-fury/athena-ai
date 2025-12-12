@@ -1,69 +1,68 @@
-import { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import '../App.css'
 
-interface Agent {
-    id: string;
-    name: string;
-    description: string;
-    isRunning: boolean;
-}
+import Layout from '../components/Layout';
+import Portfolio from '../components/Portfolio';
+import AgentControl from '../components/AgentControl';
+import MarketExplorer from '../components/MarketExplorer';
+import UserSettings from '../components/UserSettings';
 
-interface Trade {
-    id: string;
-    marketId: string;
-    side: "BUY" | "SELL";
-    amount: number;
-    outcome: string;
-    price?: number;
-    createdAt: string;
-}
+import { Toaster } from "sonner";
 
-export default function Dashboard() {
+import { useEffect, useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import GlobalActivityFeed from '../components/GlobalActivityFeed';
+import DashboardStats from '../components/DashboardStats';
+import { useUserSettings, useLoginUser } from '../lib/api';
+import { Zap } from 'lucide-react';
+
+
+function Dashboard() {
     const { publicKey, connected } = useWallet();
-    const address = publicKey?.toString();
-    const isConnected = connected;
 
-    console.log("Dashboard Render:", { isConnected, address });
+    // App Navigation State - Init from URL or Default
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings'>(() => {
+        const params = new URLSearchParams(window.location.search);
+        return (params.get('tab') as any) || 'dashboard';
+    });
 
-    const [agents, setAgents] = useState<Agent[]>([]);
-    const [trades, setTrades] = useState<Trade[]>([]);
+    // Sync URL with activeTab
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('tab') !== activeTab) {
+            params.set('tab', activeTab);
+            window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+        }
+    }, [activeTab]);
 
     const [dbUserId, setDbUserId] = useState<string | null>(null);
 
-    // Fetch data
-    useEffect(() => {
-        console.log("Login Effect Triggered", { isConnected, address });
-        if (isConnected && address) {
-            console.log("Calling loginUser with", address);
-            loginUser(address);
-        } else {
-            console.log("Skipping loginUser - Missing address or not connected");
-        }
-    }, [isConnected, address]);
+    // Fetch User Settings at top level to share proxyAddress
+    const { data: settings } = useUserSettings(dbUserId || '');
+    const proxyAddress = (settings as any)?.proxyAddress;
 
     useEffect(() => {
-        if (isConnected && dbUserId) {
-            fetchAgents();
-            fetchTrades();
-            const interval = setInterval(fetchAgents, 5000); // Poll agent status
-            return () => clearInterval(interval);
+        if (connected && publicKey) {
+            // console.log("App: Logging in user", publicKey.toBase58());
+            loginUser(publicKey.toBase58());
+        } else {
+            setDbUserId(null);
         }
-    }, [isConnected, dbUserId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [connected, publicKey]);
+
+    // React Query Mutation
+    const loginMutation = useLoginUser();
 
     const loginUser = async (walletAddress: string) => {
-        console.log("loginUser function called for", walletAddress);
         try {
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ walletAddress })
-            });
-            console.log("Login response status:", res.status);
-            const data = await res.json();
-            console.log("Login returned data:", data);
+            // console.log("App: Logging in with address:", walletAddress);
+
+            const data = await loginMutation.mutateAsync(walletAddress);
+
             if (data.success) {
+                // console.log("App: Logged in, DB ID:", data.user.id);
                 setDbUserId(data.user.id);
             }
         } catch (err) {
@@ -71,155 +70,104 @@ export default function Dashboard() {
         }
     }
 
-
-    const fetchAgents = async () => {
-        try {
-            if (!dbUserId) return;
-            const res = await fetch(`${API_URL}/agents?userId=${dbUserId}`);
-            const data = await res.json();
-            if (data.success) setAgents(data.agents);
-        } catch (err) {
-            console.error("Failed to fetch agents", err);
-        }
-    };
-
-    const fetchTrades = async () => {
-        if (!dbUserId) return; // Need DB ID, not just address
-        try {
-            // NOTE: The trade history endpoint currently expects a user ID (database ID)
-            const res = await fetch(`${API_URL}/trade/history/${dbUserId}`);
-            const data = await res.json();
-            if (data.success) setTrades(data.trades);
-        } catch (err) {
-            console.error("Failed to fetch trades", err);
-        }
-    };
-
-    useEffect(() => {
-        if (isConnected && dbUserId) {
-            fetchAgents();
-            fetchTrades();
-            const interval = setInterval(fetchAgents, 5000); // Poll agent status
-            return () => clearInterval(interval);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isConnected, dbUserId]);
-
-    const toggleAgent = async (agentId: string, isRunning: boolean) => {
-        if (!dbUserId) return;
-        try {
-            const endpoint = isRunning ? "stop" : "start";
-            const res = await fetch(`${API_URL}/agents/${agentId}/${endpoint}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: dbUserId }) // Pass DB ID
-            });
-            const data = await res.json();
-            if (data.success) {
-                fetchAgents(); // Refresh UI
-            } else {
-                alert(data.message);
-            }
-        } catch (err) {
-            console.error("Action failed", err);
-        }
-    };
-
-    if (!isConnected) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-gray-900 text-white">
-                <div className="text-center">
-                    <h1 className="mb-4 text-4xl font-bold">Poly-Dapp Agent Dashboard</h1>
-                    <p className="mb-8 text-gray-400">Connect your wallet to manage your AI agents.</p>
-                    {/* Dynamic Widget is better placed in the header, but we can instruct user */}
-                    <p className="text-xl animate-pulse">Please connect using the wallet button in the top right.</p>
+    // Render content based on active tab
+    const renderContent = () => {
+        if (!connected) {
+            return (
+                <div className="flex flex-col items-center justify-center h-[60vh] space-y-6 animate-in fade-in zoom-in duration-500">
+                    <div className="p-6 bg-blue-500/10 rounded-full ring-1 ring-blue-500/30 shadow-[0_0_50px_-10px_rgba(59,130,246,0.3)]">
+                        <div className="p-4 bg-blue-500/20 rounded-full">
+                            <Zap size={48} className="text-blue-400" />
+                        </div>
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h2 className="text-2xl font-bold text-white">Connect Your Wallet</h2>
+                        <p className="text-gray-400 max-w-md">
+                            Access your autonomous trading agents, view real-time stats, and manage your portfolio.
+                        </p>
+                    </div>
+                    <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm text-gray-400 flex items-center gap-2">
+                        <span>Please click</span>
+                        <div className="scale-75 origin-center">
+                            <WalletMultiButton />
+                        </div>
+                        <span>in the top right</span>
+                    </div>
                 </div>
-            </div>
-        );
-    }
+            );
+        }
 
-    return (
-        <div className="min-h-screen bg-gray-900 p-8 text-white">
-            <div className="mb-6 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-200">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                    <span className="text-lg">⚠️</span>
-                    <span>
-                        <span className="font-bold">Notice:</span> Trade execution and data such as trades, prices, and positions may be delayed due to issues with Polygon. Please trade with caution.
-                    </span>
-                </p>
-            </div>
-
-            <header className="mb-8 flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <div className="text-sm text-gray-400">
-                    Connected: <span className="text-green-400">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+        // HARD GATE: If user is logged in but has no proxy credential, FORCE Settings (Onboarding)
+        if (connected && dbUserId && !proxyAddress && activeTab !== 'settings') {
+            return (
+                <div className="max-w-4xl mx-auto pt-10">
+                    <div className="mb-8 text-center">
+                        <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30 animate-pulse">
+                            <Zap size={32} className="text-purple-400" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2">Complete Your Setup</h2>
+                        <p className="text-gray-400">Import your Polymarket Credentials to enable autonomous trading.</p>
+                        <div className="mt-4 flex items-center justify-center gap-2 text-emerald-400 bg-emerald-500/10 py-2 px-4 rounded-full border border-emerald-500/20 max-w-fit mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <span className="text-sm font-medium">End-to-End Encrypted & Secure Storage</span>
+                        </div>
+                    </div>
+                    <UserSettings dbUserId={dbUserId} />
                 </div>
-            </header>
+            );
+        }
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* AGENTS PANEL */}
-                <div className="rounded-lg bg-gray-800 p-6">
-                    <h2 className="mb-4 text-xl font-semibold">🤖 Active Agents</h2>
-                    <div className="space-y-4">
-                        {agents.length === 0 && <p className="text-gray-500">No agents registered.</p>}
-                        {agents.map((agent) => (
-                            <div key={agent.id} className="flex items-center justify-between rounded bg-gray-700 p-4">
-                                <div>
-                                    <h3 className="font-bold">{agent.name}</h3>
-                                    <p className="text-sm text-gray-400">{agent.description}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className={`h-3 w-3 rounded-full ${agent.isRunning ? "bg-green-500" : "bg-red-500"}`}></div>
+        switch (activeTab) {
+            case 'dashboard':
+                return (
+                    <div className="">
+
+
+                        {/* Stats Overview */}
+                        <div className="mb-5">
+                            <h3 className="text-xl font-bold text-white -mb-4">Stats Overview</h3>
+                            <DashboardStats userId={dbUserId} />
+                        </div>
+
+                        {/* Wallet Control (Deposit/Withdraw) removed as requested */}
+
+                        <div className="grid grid-cols-1 gap-6 mb-8">
+                            {/* Compact Agent View */}
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-4">Deployed Agents</h3>
+                                <AgentControl dbUserId={dbUserId} variant="compact" />
+                                <div className="mt-2 flex justify-end">
                                     <button
-                                        onClick={() => toggleAgent(agent.id, agent.isRunning)}
-                                        className={`rounded px-3 py-1 text-sm font-bold ${agent.isRunning ? "bg-red-600 hover:bg-red-500" : "bg-green-600 hover:bg-green-500"
-                                            }`}
+                                        onClick={() => setActiveTab('agents')}
+                                        className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1"
                                     >
-                                        {agent.isRunning ? "STOP" : "START"}
+                                        Show More &rarr;
                                     </button>
                                 </div>
                             </div>
-                        ))}
+                            <GlobalActivityFeed userId={dbUserId} />
+                        </div>
                     </div>
-                </div>
+                );
+            case 'agents':
+                return <AgentControl dbUserId={dbUserId} />;
+            case 'markets':
+                return <MarketExplorer />;
+            case 'wallet':
+                return <Portfolio userId={dbUserId} />;
+            case 'settings':
+                return <UserSettings dbUserId={dbUserId || ''} />;
+            default:
+                return <div>Not found</div>;
+        }
+    };
 
-                {/* TRADES PANEL */}
-                <div className="rounded-lg bg-gray-800 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-semibold">Recent Trades</h2>
-                        <button onClick={fetchTrades} className="text-sm text-blue-400 hover:underline">Refresh</button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-700 text-gray-300">
-                                <tr>
-                                    <th className="p-2">Market</th>
-                                    <th className="p-2">Side</th>
-                                    <th className="p-2">Amount</th>
-                                    <th className="p-2">Result</th>
-                                    <th className="p-2">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-700">
-                                {trades.length === 0 && (
-                                    <tr><td colSpan={5} className="p-4 text-center text-gray-500">No trades yet.</td></tr>
-                                )}
-                                {trades.map((trade) => (
-                                    <tr key={trade.id} className="hover:bg-gray-700/50">
-                                        <td className="p-2 font-mono">{trade.marketId.slice(0, 8)}...</td>
-                                        <td className={`p-2 font-bold ${trade.side === "BUY" ? "text-green-400" : "text-red-400"}`}>
-                                            {trade.side}
-                                        </td>
-                                        <td className="p-2">{trade.amount}</td>
-                                        <td className="p-2">{trade.outcome}</td>
-                                        <td className="p-2 text-gray-500">{new Date(trade.createdAt).toLocaleTimeString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    return (
+        <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+            <Toaster position="top-right" theme="dark" toastOptions={{ duration: 5000 }} />
+            {renderContent()}
+        </Layout>
+    )
 }
+
+export default Dashboard

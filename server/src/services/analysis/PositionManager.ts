@@ -59,15 +59,17 @@ export class PositionManager {
      */
     private static async checkExitCondition(agent: any, position: any): Promise<positionExitDecision> {
         // 1. Hard Stops (PnL)
-        // percentPnl is commonly returned as e.g. 0.5 for 50% or 50 for 50%. 
-        // We need to normalize based on what PortfolioService returns.
-        // Looking at PortfolioService, it passes "p.percentPnl" directly. usually Polymarket API returns decimal (0.1 = 10%).
-        // Let's assume decimal for safety, but check bounds. 
-        // If percentPnl is > 100, it might be percentage. If < 2, likely decimal.
+        // Recalculate PnL regarding Initial Value to avoid API ambiguity (decimal vs percent)
+        let pnlPercent = 0;
+        if (position.initialValue > 0) {
+            // (Current - Initial) / Initial * 100
+            pnlPercent = ((position.exposure - position.initialValue) / position.initialValue) * 100;
+        } else {
+            // Fallback if initial is 0 (e.g. air-drop or error), use API field cautiously
+            pnlPercent = position.percentPnl * 100;
+        }
 
-        // Actually, let's treat the inputs from Agent (20.0, 100.0) as percentages (20%, 100%).
-
-        const pnlPercent = position.percentPnl * 100; // Assuming input is decimal (0.2 -> 20%)
+        // logger.info(`🔍 [PositionManager] Check: ${position.marketTitle} | Init: $${position.initialValue} | Curr: $${position.exposure} | Calc PnL: ${pnlPercent.toFixed(2)}%`);
 
         // Stop Loss (e.g. -20%)
         // If PnL is -25%, it is LESS than -20%.

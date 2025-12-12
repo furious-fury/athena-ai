@@ -11,33 +11,15 @@ services:
       - NODE_ENV=production
       - PORT=5000
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - POLYMARKET_API_KEY=${POLYMARKET_API_KEY}
       - PRIVATE_KEY=${PRIVATE_KEY}
-    depends_on:
-      - redis
-      - db
     restart: always
+  # redis service removed (Using External)
+  # db service removed (Using Supabase)
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    restart: always
-
-  db:
-    image: postgres:15-alpine
-    environment:
-      postgres_PASSWORD: ${DB_PASSWORD}
-      postgres_DB: polydapp
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: always
-
-volumes:
-  pgdata:
+  # volumes removed

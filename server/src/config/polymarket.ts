@@ -1,4 +1,6 @@
 import { ClobClient } from "@polymarket/clob-client";
+import { BuilderConfig } from "@polymarket/builder-signing-sdk";
+import type { BuilderApiKeyCreds } from "@polymarket/builder-signing-sdk";
 import { ethers } from "ethers";
 import { logger } from "./logger.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -29,6 +31,32 @@ const provider = new ethers.providers.JsonRpcProvider("https://polygon-rpc.com")
 const wallet = new ethers.Wallet(delegationPrivateKey, provider);
 
 // Initialize CLOB client with L2 proxy wallet delegation
+
+// ... [existing code]
+
+// Initialize CLOB client with L2 proxy wallet delegation
+// We add Builder Credentials if available for Attribution
+const builderApiKey = process.env.POLY_BUILDER_API_KEY;
+const builderSecret = process.env.POLY_BUILDER_SECRET;
+const builderPassphrase = process.env.POLY_BUILDER_PASSPHRASE;
+
+let builderConfig: BuilderConfig | undefined = undefined;
+
+if (builderApiKey && builderSecret && builderPassphrase) {
+    const builderCreds: BuilderApiKeyCreds = {
+        key: builderApiKey,
+        secret: builderSecret,
+        passphrase: builderPassphrase
+    };
+    // Assuming BuilderConfig is a class based on lint usage
+    builderConfig = new BuilderConfig({
+        localBuilderCreds: builderCreds
+    });
+    logger.info("🔧 Builder Credentials Loaded for Attribution");
+} else {
+    logger.warn("⚠️ No Builder Credentials found - Orders will not be attributed");
+}
+
 const clobClient = new ClobClient(
     process.env.POLYMARKET_CLOB_URL || "https://clob.polymarket.com",
     137, // Polygon chain ID
@@ -39,7 +67,10 @@ const clobClient = new ClobClient(
         passphrase: process.env.POLYMARKET_PASSPHRASE || "",
     },
     2, // Safe proxy wallet type
-    process.env.PROXY_WALLET_ADDRESS // User's proxy wallet address (will be overridden per-user)
+    process.env.PROXY_WALLET_ADDRESS, // User's proxy wallet address (will be overridden per-user)
+    undefined, // options
+    undefined, // socket options
+    builderConfig // custom options / builder config
 );
 
 logger.info("✅ Polymarket CLOB client initialized with L2 delegation");

@@ -21,6 +21,9 @@ services:
       - POLY_PROXY_URL=${POLY_PROXY_URL}
       - HTTPS_PROXY=${POLY_PROXY_URL}
       - HTTP_PROXY=${POLY_PROXY_URL}
+      - POLY_BUILDER_API_KEY=${POLY_BUILDER_API_KEY}
+      - POLY_BUILDER_SECRET=${POLY_BUILDER_SECRET}
+      - POLY_BUILDER_PASSPHRASE=${POLY_BUILDER_PASSPHRASE}
     restart: always
   # redis service removed (Using External)
   # db service removed (Using Supabase)

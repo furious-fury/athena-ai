@@ -49,7 +49,7 @@ export function RoadmapSection() {
                             time="Q1 2026"
                             title="Expansion"
                             status="upcoming"
-                            items={["Mobile App (iOS/Android)", "Social Trading & Leaderboards", "Advanced Portfolio Analytics", "Fully Custom Agent", "Customizable PnL", "Revenue share for users."]}
+                            items={["Mobile App (iOS/Android)", "Social Trading & Leaderboards", "Advanced Portfolio Analytics", "Fully Custom Agent", "Customizable PnL", "Revenue share for users.", "Premium Version"]}
                         />
                     </div>
                     <div className="relative z-10 h-full">

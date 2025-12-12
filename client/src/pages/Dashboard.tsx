@@ -18,6 +18,8 @@ import { useUserSettings, useLoginUser } from '../lib/api';
 import { Zap } from 'lucide-react';
 
 
+import { LoadingScreen } from '../components/LoadingScreen';
+
 function Dashboard() {
     const { publicKey, connected } = useWallet();
 
@@ -26,6 +28,11 @@ function Dashboard() {
         const params = new URLSearchParams(window.location.search);
         return (params.get('tab') as any) || 'dashboard';
     });
+
+    // Unified Loading State
+    // We consider it "loading" if the wallet is connected but we haven't determined the user ID yet
+    // OR if we are waiting for the initial user sync
+    const [isInitialLoad, setIsInitialLoad] = useState(false);
 
     // Sync URL with activeTab
     useEffect(() => {
@@ -39,15 +46,20 @@ function Dashboard() {
     const [dbUserId, setDbUserId] = useState<string | null>(null);
 
     // Fetch User Settings at top level to share proxyAddress
-    const { data: settings } = useUserSettings(dbUserId || '');
+    const { data: settings, isLoading: isSettingsLoading } = useUserSettings(dbUserId || '');
     const proxyAddress = (settings as any)?.proxyAddress;
 
     useEffect(() => {
         if (connected && publicKey) {
+            setIsInitialLoad(true); // Start loading when connection detected
             // console.log("App: Logging in user", publicKey.toBase58());
-            loginUser(publicKey.toBase58());
+            loginUser(publicKey.toBase58()).finally(() => {
+                // Keep loading slightly longer for smoother transition or until settings fetch begins
+                // But the main blocker is getting the DB ID
+            });
         } else {
             setDbUserId(null);
+            setIsInitialLoad(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [connected, publicKey]);
@@ -58,20 +70,33 @@ function Dashboard() {
     const loginUser = async (walletAddress: string) => {
         try {
             // console.log("App: Logging in with address:", walletAddress);
-
             const data = await loginMutation.mutateAsync(walletAddress);
-
             if (data.success) {
                 // console.log("App: Logged in, DB ID:", data.user.id);
                 setDbUserId(data.user.id);
             }
         } catch (err) {
             console.error("Failed to login user", err);
+        } finally {
+            // We can turn off the "login" phase loading, but we might still be fetching settings
+            // We'll let the render logic handle the smooth transition or use a timeout if needed
+            // For now, we rely on dbUserId being set to unblock the view
+            setIsInitialLoad(false);
         }
     }
 
     // Render content based on active tab
     const renderContent = () => {
+        // 1. Unified Loading State
+        // If connected and (logging in OR (logged in but fetching initial settings))
+        if (connected && (isInitialLoad || (dbUserId && isSettingsLoading))) {
+            return (
+                <div className="absolute inset-0 z-50 bg-main">
+                    <LoadingScreen fullScreen={false} message="Loading Dashboard..." subMessage="Syncing your agents and portfolio" />
+                </div>
+            );
+        }
+
         if (!connected) {
             return (
                 <div className="flex flex-col items-center justify-center h-[60vh] space-y-6 animate-in fade-in zoom-in duration-500">
@@ -100,7 +125,7 @@ function Dashboard() {
         // HARD GATE: If user is logged in but has no proxy credential, FORCE Settings (Onboarding)
         if (connected && dbUserId && !proxyAddress && activeTab !== 'settings') {
             return (
-                <div className="max-w-4xl mx-auto pt-10">
+                <div className="max-w-4xl mx-auto pt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="mb-8 text-center">
                         <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30 animate-pulse">
                             <Zap size={32} className="text-purple-400" />
@@ -120,9 +145,7 @@ function Dashboard() {
         switch (activeTab) {
             case 'dashboard':
                 return (
-                    <div className="">
-
-
+                    <div className="animate-in fade-in duration-500">
                         {/* Stats Overview */}
                         <div className="mb-5">
                             <h3 className="text-xl font-bold text-white -mb-4">Stats Overview</h3>

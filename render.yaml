@@ -7,9 +7,9 @@ services:
     runtime: docker
     region: oregon 
     plan: free 
-    rootDir: .
-    dockerContext: server
-    dockerfilePath: server/Dockerfile
+    rootDir: server
+    dockerContext: .
+    dockerfilePath: Dockerfile
     envVars:
       - key: PORT
         value: 5000

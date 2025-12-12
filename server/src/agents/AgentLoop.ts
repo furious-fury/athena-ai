@@ -403,6 +403,8 @@ export class AgentLoop {
 
         } catch (err) {
             logger.error({ err }, `❌ Error in AgentLoop for ${this.agentId}`);
+        } finally {
+            this.isProcessing = false;
         }
     }
 

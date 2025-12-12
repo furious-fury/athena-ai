@@ -122,14 +122,7 @@ function App() {
       case 'dashboard':
         return (
           <div className="">
-            <div className="mb-6 rounded-md border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-200">
-              <p className="flex items-center gap-2 text-sm font-medium">
-                <span className="text-lg">⚠️</span>
-                <span>
-                  <span className="font-bold">Notice:</span> Trade execution and data such as trades, prices, and positions may be delayed due to issues with Polygon. Please trade with caution.
-                </span>
-              </p>
-            </div>
+
 
             {/* Stats Overview */}
             <div className="mb-5">

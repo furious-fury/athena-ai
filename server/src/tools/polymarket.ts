@@ -17,6 +17,10 @@ if (proxyUrl && agent) {
     // Patch Axios (used by ClobClient)
     axios.defaults.httpsAgent = agent;
     axios.defaults.proxy = false; // Disable axios's native proxy handling in favor of agent
+
+    // Spoof User-Agent to look like Chrome
+    const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    axios.defaults.headers.common['User-Agent'] = CHROME_UA;
 }
 
 // Export TradeParams as expected by other files

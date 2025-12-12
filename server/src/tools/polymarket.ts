@@ -350,7 +350,9 @@ const ensureProxyAllowance = async (user: any, eoaWallet: ethers.Wallet, provide
                     key: user.apiKey,
                     secret: user.apiSecret,
                     passphrase: user.apiPassphrase
-                } : undefined
+                } : undefined,
+                2, // SignatureType.POLY_PROXY
+                user.scwAddress
             );
 
             await syncTimeWithSDK(clobClient);
@@ -445,7 +447,7 @@ export const place_trade = async (trade: TradeParams) => {
                 secret: user.apiSecret || "",
                 passphrase: user.apiPassphrase || ""
             },
-            useProxy ? 2 : 0,
+            useProxy ? 2 : 0, // 2 for Proxy (Match test-buy.js)
             useProxy ? proxyAddress || undefined : undefined
         );
 
@@ -550,6 +552,9 @@ export const place_trade = async (trade: TradeParams) => {
             expiration: 0,
             nonce: 0
         }, { tickSize, negRisk: true }); // Always assume negRisk true for safety on mainnet markets (most are)
+
+        console.log(`[TRADE] 📝 Signing Order:`, JSON.stringify(order));
+        console.log(`[TRADE] 📝 Clob Config: ChainId=137, SigType=${useProxy ? 2 : 0}, Proxy=${proxyAddress}`);
 
         const postResp = await clobClient.postOrder(order, orderType === "FOK" ? "FOK" : "GTC");
 
@@ -706,7 +711,7 @@ export const close_position = async (userId: string, marketId: string, outcome: 
                 secret: user.apiSecret,
                 passphrase: user.apiPassphrase
             },
-            useProxy ? 2 : 0, // 2 for Proxy, 0 for EOA
+            useProxy ? 2 : 0, // 2 for Proxy
             useProxy ? proxyAddress || undefined : undefined
         );
 

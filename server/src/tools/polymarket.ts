@@ -3,8 +3,21 @@ import { ethers } from "ethers";
 import { prisma } from "../config/database.js";
 import { SmartAccountSigner } from "./smart-account-signer.js";
 import { SmartWalletService } from "../services/smartWallet.service.js";
-// import fetch from "node-fetch"; // Use native fetch
+import fetch from "node-fetch"; // Use node-fetch for proxy support
+import { HttpsProxyAgent } from "https-proxy-agent";
+import axios from "axios";
 import { SecurityService } from "../services/SecurityService.js";
+
+// Configure Proxy if available
+const proxyUrl = process.env.POLY_PROXY_URL;
+const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
+
+if (proxyUrl && agent) {
+    console.log(`[PROXY] 🛡️ Using Residential Proxy: ${proxyUrl.replace(/:[^:]*@/, ":***@")}`); // Log masked
+    // Patch Axios (used by ClobClient)
+    axios.defaults.httpsAgent = agent;
+    axios.defaults.proxy = false; // Disable axios's native proxy handling in favor of agent
+}
 
 // Export TradeParams as expected by other files
 export interface TradeParams {
@@ -36,7 +49,7 @@ const GAMMA_API_URL = "https://gamma-api.polymarket.com";
  */
 export const get_markets = async (limit: number = 20): Promise<Market[]> => {
     try {
-        const response = await fetch(`${GAMMA_API_URL}/markets?active=true&closed=false&limit=${limit}&order=volume24hr&ascending=false`);
+        const response = await fetch(`${GAMMA_API_URL}/markets?active=true&closed=false&limit=${limit}&order=volume24hr&ascending=false`, { agent });
         if (!response.ok) throw new Error("Failed to fetch markets");
         const data: any = await response.json();
         return data.map((m: any) => ({
@@ -63,7 +76,7 @@ export const get_markets = async (limit: number = 20): Promise<Market[]> => {
 export const search_markets = async (query: string): Promise<Market[]> => {
     try {
         const encoded = encodeURIComponent(query);
-        const response = await fetch(`${GAMMA_API_URL}/markets?active=true&closed=false&question=${encoded}&limit=10&order=volume24hr&ascending=false`);
+        const response = await fetch(`${GAMMA_API_URL}/markets?active=true&closed=false&question=${encoded}&limit=10&order=volume24hr&ascending=false`, { agent });
 
         if (!response.ok) return [];
         const data: any = await response.json();
@@ -90,7 +103,7 @@ export const search_markets = async (query: string): Promise<Market[]> => {
  */
 export const get_active_events = async (limit: number = 20) => {
     try {
-        const response = await fetch(`${GAMMA_API_URL}/events?active=true&closed=false&limit=${limit}&order=volume24hr&ascending=false`);
+        const response = await fetch(`${GAMMA_API_URL}/events?active=true&closed=false&limit=${limit}&order=volume24hr&ascending=false`, { agent });
         const data: any = await response.json();
         return data; // Return raw events
     } catch (error) {
@@ -119,7 +132,7 @@ export const get_positions = async (userId: string) => {
         const DATA_API_URL = "https://data-api.polymarket.com/positions";
         const url = `${DATA_API_URL}?user=${targetAddress}&sizeThreshold=0.1&limit=100&sortBy=TOKENS&sortDirection=DESC`;
 
-        const response = await fetch(url);
+        const response = await fetch(url, { agent });
         if (!response.ok) return [];
 
         const data: any = await response.json();
@@ -242,7 +255,7 @@ const syncTimeWithSDK = async (client: any) => {
         console.warn("[TIME] SDK sync failed, falling back to manual:", e.message);
         // Fallback to manual sync if SDK fails
         try {
-            const response = await fetch("https://clob.polymarket.com/time");
+            const response = await fetch("https://clob.polymarket.com/time", { agent });
             if (response.ok) {
                 const text = await response.text();
                 const serverTimeSec = parseInt(text.replace(/"/g, '').trim());
@@ -447,7 +460,7 @@ export const place_trade = async (trade: TradeParams) => {
             // Reusing existing resolution logic is safer.
             try {
                 const url = `${GAMMA_API_URL}/markets/${trade.marketId}`;
-                const marketRes = await fetch(url);
+                const marketRes = await fetch(url, { agent });
                 if (marketRes.ok) {
                     const md: any = await marketRes.json();
                     if (md.clobTokenIds) {
@@ -578,7 +591,7 @@ export const get_trades = async (userId: string) => {
         const fetchForAddress = async (addr: string) => {
             try {
                 // limit=50, takerOnly=false (User reported missing Sells, might be Maker trades)
-                const response = await fetch(`${DATA_API_URL}?user=${addr}&limit=100&takerOnly=false`);
+                const response = await fetch(`${DATA_API_URL}?user=${addr}&limit=100&takerOnly=false`, { agent });
                 if (!response.ok) return [];
                 const data: any = await response.json();
                 return Array.isArray(data) ? data : [];

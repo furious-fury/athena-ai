@@ -1,6 +1,18 @@
 import { ClobClient } from "@polymarket/clob-client";
 import { ethers } from "ethers";
 import { logger } from "./logger.js";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import axios from "axios";
+
+// Configure Proxy if available
+const proxyUrl = process.env.POLY_PROXY_URL;
+if (proxyUrl) {
+    const agent = new HttpsProxyAgent(proxyUrl);
+    // Patch Axios (used by ClobClient)
+    axios.defaults.httpsAgent = agent;
+    axios.defaults.proxy = false; // Disable axios's native proxy
+    logger.info(`[PROXY] 🛡️ CLOB Client using Residential Proxy`);
+}
 
 // Initialize delegation wallet from private key
 const delegationPrivateKey = process.env.DELEGATION_PRIVATE_KEY;

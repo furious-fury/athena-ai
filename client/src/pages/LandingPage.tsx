@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bot, DollarSign } from 'lucide-react';
+import { ArrowRight, Bot, DollarSign, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 // import { Globe, Coins, Activity } from 'lucide-react';
 // import { TickerCard } from '../components/landing/TickerCard';
 import { TrustSection } from '../components/landing/TrustSection';
@@ -10,6 +12,14 @@ import { FadeIn } from '../components/FadeIn';
 
 function LandingPage() {
     const navigate = useNavigate();
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText("EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump"); // TODO: Replace with official CA
+        toast.success("CA copied to clipboard!");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     return (
         <div className="min-h-screen bg-main text-white font-sans selection:bg-accent/30 overflow-x-hidden">
@@ -59,6 +69,22 @@ function LandingPage() {
                         <p className="max-w-2xl mx-auto text-xl text-gray-400 mb-10 leading-relaxed">
                             Deploy AI agents that analyze real time news, execute trades on Polymarket, and manage risk 24/7.
                         </p>
+                    </FadeIn>
+
+                    <FadeIn delay={0.35}>
+                        <div
+                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 w-fit mx-auto mb-8 backdrop-blur-sm hover:bg-white/10 transition-all cursor-pointer group active:scale-95"
+                            onClick={handleCopy}
+                        >
+                            <span className="text-gray-400 text-sm font-medium">Official CA:</span>
+                            <span className="font-mono text-blue-400 font-bold hidden sm:inline">EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump</span>
+                            <span className="font-mono text-blue-400 font-bold sm:hidden">EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump</span>
+                            {copied ? (
+                                <Check className="w-4 h-4 text-green-400 transition-all scale-110" />
+                            ) : (
+                                <Copy className="w-4 h-4 text-gray-500 group-hover:text-white transition-all" />
+                            )}
+                        </div>
                     </FadeIn>
 
                     <FadeIn delay={0.4}>

@@ -20,7 +20,19 @@ if (proxyUrl && agent) {
 
     // Spoof User-Agent to look like Chrome
     const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-    axios.defaults.headers.common['User-Agent'] = CHROME_UA;
+
+    // Force Override User-Agent using Interceptor (ClobClient tries to overwrite it)
+    axios.interceptors.request.use(config => {
+        // @ts-ignore
+        config.headers['User-Agent'] = CHROME_UA; // Desktop Chrome
+        // @ts-ignore
+        config.headers['sec-ch-ua'] = '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"';
+        // @ts-ignore
+        config.headers['sec-ch-ua-mobile'] = '?0';
+        // @ts-ignore
+        config.headers['sec-ch-ua-platform'] = '"Windows"';
+        return config;
+    });
 }
 
 // Export TradeParams as expected by other files

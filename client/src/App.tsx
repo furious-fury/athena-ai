@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
 
 import LandingPage from './pages/LandingPage';
@@ -11,7 +11,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/trade" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Navigate to="/trade" replace />} />
         <Route path="/admin-stats" element={<AdminStats />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

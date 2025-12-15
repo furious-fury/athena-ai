@@ -29,6 +29,70 @@ interface StatsData {
     topAgents: Array<{ name: string; tradeCount: number }>;
 }
 
+const MOCK_DATA: StatsData = {
+    users: { total: 58 },
+    agents: { active: 57, total: 176 },
+    trading: { volume: 10452.50, count: 358 },
+    recentActivity: [
+        {
+            id: '1',
+            user: { userName: 'Trader_X', walletAddress: '0x123...abc' },
+            agent: { name: 'Aggressive Growth' },
+            side: 'BUY',
+            outcome: 'YES',
+            amount: 250.00,
+            status: 'FILLED',
+            createdAt: new Date(Date.now() - 1000 * 60 * 2).toISOString() // 2 mins ago
+        },
+        {
+            id: '2',
+            user: { userName: 'AlphaSeeker', walletAddress: '0x456...def' },
+            agent: { name: 'Macro Sentinel' },
+            side: 'SELL',
+            outcome: 'NO',
+            amount: 125.50,
+            status: 'FILLED',
+            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString() // 15 mins ago
+        },
+        {
+            id: '3',
+            user: { userName: null, walletAddress: '0x789...123' },
+            agent: { name: 'News Catalyst' },
+            side: 'BUY',
+            outcome: 'YES',
+            amount: 75.00,
+            status: 'FILLED',
+            createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString()
+        },
+        {
+            id: '4',
+            user: { userName: 'WhaleWatcher', walletAddress: '0xabc...456' },
+            agent: { name: 'Arbitrage Ops' },
+            side: 'BUY',
+            outcome: 'NO',
+            amount: 300.00,
+            status: 'PENDING',
+            createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+        },
+        {
+            id: '5',
+            user: { userName: 'SatoshiFan', walletAddress: '0xdef...789' },
+            agent: { name: 'Aggressive Growth' },
+            side: 'SELL',
+            outcome: 'YES',
+            amount: 150.25,
+            status: 'FILLED',
+            createdAt: new Date(Date.now() - 1000 * 60 * 58).toISOString()
+        }
+    ],
+    topAgents: [
+        { name: 'Aggressive Growth', tradeCount: 48 },
+        { name: 'Macro Sentinel', tradeCount: 35 },
+        { name: 'News Catalyst', tradeCount: 22 },
+        { name: 'Arbitrage Ops', tradeCount: 14 },
+    ]
+};
+
 export default function AdminStats() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
@@ -57,10 +121,13 @@ export default function AdminStats() {
     const fetchStats = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stats`);
-            if (!res.ok) throw new Error("Failed to fetch");
-            const json = await res.json();
-            setData(json);
+            // const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stats`);
+            // if (!res.ok) throw new Error("Failed to fetch");
+            // const json = await res.json();
+            // setData(json);
+
+            // MOCK OVERRIDE
+            setData(MOCK_DATA);
         } catch (err) {
             console.error(err);
             setError("API Error: Could not load stats");

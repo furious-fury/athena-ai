@@ -41,5 +41,6 @@ app.use("/api/activities", activitiesRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/markets", marketRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/agents", agentRouter);
 app.use("/api/user", userRouter);
 app.use("/api/logs", logRouter);

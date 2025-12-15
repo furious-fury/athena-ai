@@ -101,4 +101,23 @@ export class AgentManager {
             logger.error({ error }, "Failed to restore agents");
         }
     }
+    static async stopAll(): Promise<number> {
+        const count = this.activeLoops.size;
+
+        // 1. Stop all execution loops in memory
+        for (const [agentId, loop] of this.activeLoops.entries()) {
+            loop.stop();
+            logger.info(`🛑 Emergency Stop: Agent ${agentId} halted.`);
+        }
+        this.activeLoops.clear();
+
+        // 2. Persist stopped state to DB
+        await prisma.agent.updateMany({
+            where: { isActive: true },
+            data: { isActive: false }
+        });
+
+        logger.warn(`🚨 EMERGENCY STOP: Halted ${count} active agents.`);
+        return count;
+    }
 }

@@ -81,7 +81,12 @@ export class AgentLog {
                     metadata: sanitizedMetadata,
                 },
             });
-        } catch (error) {
+        } catch (error: any) {
+            // Suppress noisy Foreign Key errors (happens if agent is deleted while running)
+            if (error.code === 'P2003') {
+                console.warn(`[AgentLog] Skipped log for non-existent agent (${params.agentId})`);
+                return null;
+            }
             console.error('[AgentLog] Failed to create log:', error);
             // Don't throw - logging failures shouldn't break agent flow
             return null;

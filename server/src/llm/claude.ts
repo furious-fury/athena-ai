@@ -5,7 +5,7 @@ export class ClaudeProvider {
     private client: Anthropic;
     private model: string;
 
-    constructor(model = "claude-3-5-sonnet-20240620") {
+    constructor(model = "claude-haiku-3-5-20240620") {
         this.client = new Anthropic({
             apiKey: process.env.ANTHROPIC_API_KEY,
         });

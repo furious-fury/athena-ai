@@ -20,8 +20,6 @@ async function startServer() {
 
         // 2. Start Agent Workers (General pool)
         // We can have a few workers handling the shared queue
-        // 2. Start Agent Workers (General pool)
-        // We can have a few workers handling the shared queue
         const workers = [new AgentWorker("worker_1", 3), new AgentWorker("worker_2", 3)];
         workers.forEach((w) => w.start());
 
@@ -35,6 +33,10 @@ async function startServer() {
         setInterval(() => {
             LogCleanupService.pruneOldLogs(7);
         }, 24 * 60 * 60 * 1000);
+
+        // 4. Start Wallet Tracker Service (Background Sync)
+        const { WalletTrackerService } = await import("./services/WalletTrackerService.js");
+        WalletTrackerService.startTracking();
 
 
         // Start Express server

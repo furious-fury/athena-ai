@@ -9,13 +9,14 @@ import {
     Settings,
     Menu,
     X,
-    Twitter
+    Twitter,
+    ScanEye
 } from "lucide-react";
 
 interface LayoutProps {
     children: React.ReactNode;
     activeTab?: string;
-    setActiveTab?: (tab: 'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings') => void;
+    setActiveTab?: (tab: 'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings' | 'tracker') => void;
 }
 
 function Layout({ children, activeTab = 'dashboard', setActiveTab }: LayoutProps) {
@@ -26,6 +27,7 @@ function Layout({ children, activeTab = 'dashboard', setActiveTab }: LayoutProps
         { id: 'agents', label: 'Agents', icon: Bot },
         { id: 'markets', label: 'Markets', icon: CandlestickChart },
         { id: 'wallet', label: 'Wallet', icon: Wallet },
+        { id: 'tracker', label: 'Watcher', icon: ScanEye },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 

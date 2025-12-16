@@ -6,6 +6,7 @@ import Portfolio from '../components/Portfolio';
 import AgentControl from '../components/AgentControl';
 import MarketExplorer from '../components/MarketExplorer';
 import UserSettings from '../components/UserSettings';
+import { WalletWatch } from '../components/WalletWatch';
 
 import { Toaster } from "sonner";
 
@@ -24,7 +25,7 @@ function Dashboard() {
     const { publicKey, connected } = useWallet();
 
     // App Navigation State - Init from URL or Default
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings'>(() => {
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'markets' | 'wallet' | 'settings' | 'tracker'>(() => {
         const params = new URLSearchParams(window.location.search);
         return (params.get('tab') as any) || 'dashboard';
     });
@@ -178,6 +179,8 @@ function Dashboard() {
                 return <MarketExplorer />;
             case 'wallet':
                 return <Portfolio userId={dbUserId} />;
+            case 'tracker':
+                return <WalletWatch userId={dbUserId || ''} />;
             case 'settings':
                 return <UserSettings dbUserId={dbUserId || ''} />;
             default:

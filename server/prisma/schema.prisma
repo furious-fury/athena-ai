@@ -30,12 +30,31 @@ model User {
   maxTotalExposure     Float @default(2000)
   tradeCooldownSeconds Int   @default(300)
 
+  // Tracked Wallets (Relation)
+  trackedWallets TrackedWallet[]
+
   agents             Agent[]
   trades             Trade[]
   positions          Position[]
   agentLogs          AgentLog[]
   activities         Activity[] // Relation for deposits/withdrawals
   portfolioSnapshots PortfolioSnapshot[]
+}
+
+model TrackedWallet {
+  id      String  @id @default(cuid())
+  user    User    @relation(fields: [userId], references: [id])
+  userId  String
+  address String
+  name    String?
+
+  cachedTrades    Json?
+  cachedPositions Json?
+  lastUpdated     DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, address]) // Prevent duplicate tracking of same wallet by same user
 }
 
 model PortfolioSnapshot {

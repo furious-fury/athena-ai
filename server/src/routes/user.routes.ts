@@ -177,5 +177,91 @@ router.get("/activity/:userId", ActivityController.getUserActivity);
  */
 router.post("/activity/log", ActivityController.logActivity);
 
+// Tracked Wallets Endpoints
+
+/**
+ * GET /api/user/tracked-wallets
+ */
+router.get("/tracked-wallets", async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.query;
+        if (!userId || typeof userId !== 'string') return res.status(400).json({ error: "userId required" });
+
+        const wallets = await prisma.trackedWallet.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            select: { address: true, name: true, id: true }
+        });
+        res.json({ success: true, wallets });
+    } catch (e) {
+        res.status(500).json({ error: "Failed to fetch wallets" });
+    }
+});
+
+/**
+ * POST /api/user/tracked-wallets
+ * Adds a new tracked wallet with optional name
+ */
+router.post("/tracked-wallets", async (req: Request, res: Response) => {
+    try {
+        const { userId, address, name } = req.body;
+        if (!userId || !address) return res.status(400).json({ error: "Missing fields" });
+
+        // Upsert to handle updates to name or existing check
+        const wallet = await prisma.trackedWallet.upsert({
+            where: {
+                userId_address: {
+                    userId,
+                    address
+                }
+            },
+            update: { name: name || null }, // Update name if provided
+            create: {
+                userId,
+                address,
+                name: name || null
+            }
+        });
+
+        // Return updated list
+        const wallets = await prisma.trackedWallet.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            select: { address: true, name: true, id: true }
+        });
+
+        res.json({ success: true, wallets });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Failed to add wallet" });
+    }
+});
+
+/**
+ * DELETE /api/user/tracked-wallets
+ */
+router.delete("/tracked-wallets", async (req: Request, res: Response) => {
+    try {
+        const { userId, address } = req.body;
+        if (!userId || !address) return res.status(400).json({ error: "Missing fields" });
+
+        await prisma.trackedWallet.deleteMany({
+            where: {
+                userId,
+                address
+            }
+        });
+
+        const wallets = await prisma.trackedWallet.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            select: { address: true, name: true, id: true }
+        });
+        res.json({ success: true, wallets });
+    } catch (e) {
+        res.status(500).json({ error: "Failed to remove wallet" });
+    }
+});
+
 export default router;
 

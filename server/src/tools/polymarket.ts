@@ -654,6 +654,81 @@ export const get_trades = async (userId: string) => {
 };
 
 /**
+ * Fetches trade history for a specific wallet address from Polymarket Data API
+ */
+export const get_trades_by_address = async (address: string) => {
+    try {
+        const DATA_API_URL = "https://data-api.polymarket.com/trades";
+
+        const response = await fetch(`${DATA_API_URL}?user=${address}&limit=100&takerOnly=false`, { agent });
+        if (!response.ok) return [];
+        const data: any = await response.json();
+        const trades = Array.isArray(data) ? data : [];
+
+        // Return mapped format
+        return trades.map((t: any) => ({
+            id: t.transactionHash || Math.random(),
+            market: t.title || "Unknown Market",
+            asset_id: t.asset,
+            side: t.side,
+            size: t.size,
+            price: t.price,
+            timestamp: t.timestamp,
+            outcome: t.outcome,
+            transactionHash: t.transactionHash,
+            icon: t.icon
+        }));
+
+    } catch (error) {
+        console.error("get_trades_by_address error:", error);
+        return [];
+    }
+};
+
+/**
+ * Fetches active positions for a specific wallet address from Polymarket Data API
+ */
+export const get_positions_by_address = async (address: string) => {
+    try {
+        const DATA_API_URL = "https://data-api.polymarket.com/positions";
+
+        // Use sizeThreshold to filter dust, and robust params matching get_positions
+        const url = `${DATA_API_URL}?user=${address}&sizeThreshold=0.1&limit=100&sortBy=TOKENS&sortDirection=DESC`;
+        console.log(`[WalletWatch] Fetching positions for ${address} via ${url}`);
+
+        const response = await fetch(url, { agent });
+        if (!response.ok) {
+            console.error(`[WalletWatch] Failed to fetch positions: ${response.status} ${response.statusText}`);
+            return [];
+        }
+        const data: any = await response.json();
+        const positions = Array.isArray(data) ? data : [];
+        console.log(`[WalletWatch] Found ${positions.length} positions for ${address}`);
+
+        // Map using keys observed in PortfolioService + standard Data API fields
+        // Data API fields: asset, title, size, curPrice, cashPnl, initialValue, currentValue
+        return positions.map((p: any) => ({
+            asset: p.asset,
+            title: p.title,
+            market: p.market,
+            outcome: p.outcome,
+            size: Number(p.size || 0),
+            value: Number(p.currentValue || p.value || 0), // Use currentValue if available (PortfolioService uses it)
+            price: Number(p.curPrice || p.price || 0),
+            initialValue: Number(p.initialValue || 0),
+            pnl: Number(p.cashPnl || 0),
+            icon: p.icon
+        }));
+
+    } catch (error) {
+        console.error("get_positions_by_address error:", error);
+        return [];
+    }
+};
+
+
+
+/**
  * Closes a position by placing a SELL order for the full size.
  * Bypasses place_trade "USDC amount" logic to ensure exact share selling.
  */

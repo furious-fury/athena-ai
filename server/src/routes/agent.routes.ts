@@ -37,7 +37,7 @@ agentRouter.get("/", async (req, res) => {
 // POST /api/agents (Create Agent)
 agentRouter.post("/", async (req, res) => {
     try {
-        const { name, description, riskProfile, userId, stopLossPercent, takeProfitPercent } = req.body;
+        const { name, description, riskProfile, userId, stopLossPercent, takeProfitPercent, llmProvider } = req.body;
 
         if (!name || !riskProfile) {
             res.status(400).json({ success: false, message: "Name and Risk Profile are required" });
@@ -49,6 +49,11 @@ agentRouter.post("/", async (req, res) => {
 
         const systemPrompt = generateSystemPrompt(name, description || "", riskProfile);
 
+        // Determine Model based on Provider
+        let model = "gpt-4o-mini"; // Default OpenAI
+        if (llmProvider === "ANTHROPIC") model = "claude-3-5-sonnet-20240620";
+        if (llmProvider === "GEMINI") model = "gemini-1.5-flash";
+
         // Save to DB
         const agent = await prisma.agent.create({
             data: {
@@ -57,8 +62,8 @@ agentRouter.post("/", async (req, res) => {
                 riskProfile: riskProfile, // Enum match
                 systemPrompt: systemPrompt,
                 userId: userId || "demo_user", // Fallback for MVP
-                llmProvider: "OPENAI",
-                llmModel: "gpt-4o-mini",
+                llmProvider: llmProvider || "OPENAI",
+                llmModel: model,
                 stopLossPercent: stopLossPercent ? parseFloat(stopLossPercent) : 20.0,
                 takeProfitPercent: takeProfitPercent ? parseFloat(takeProfitPercent) : 100.0,
                 isActive: false

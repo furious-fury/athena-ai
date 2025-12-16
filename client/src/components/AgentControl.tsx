@@ -26,6 +26,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
     // Form State
     const [name, setName] = useState("");
     const [riskProfile, setRiskProfile] = useState("MEDIUM");
+    const [llmProvider, setLlmProvider] = useState("OPENAI");
     const [stopLoss, setStopLoss] = useState("20");
     const [takeProfit, setTakeProfit] = useState("100");
 
@@ -63,12 +64,14 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
             riskProfile,
             userId: dbUserId,
             stopLossPercent: !isNaN(parseFloat(stopLoss)) ? parseFloat(stopLoss) : 20,
-            takeProfitPercent: !isNaN(parseFloat(takeProfit)) ? parseFloat(takeProfit) : 100
+            takeProfitPercent: !isNaN(parseFloat(takeProfit)) ? parseFloat(takeProfit) : 100,
+            llmProvider
         }, {
             onSuccess: () => {
                 setIsOpen(false);
                 setName("");
                 setRiskProfile("MEDIUM");
+                setLlmProvider("OPENAI");
                 setStopLoss("20");
                 setTakeProfit("100");
                 toast.success("Agent deployed successfully!");
@@ -139,7 +142,7 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                     <DialogHeader>
                         <DialogTitle>Deploy New Agent</DialogTitle>
                         <DialogDescription className="text-gray-400">
-                            Configure a new AI agent with a name and risk profile.
+                            Configure a new AI agent with a name, provider, and risk profile.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -152,18 +155,32 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                 className="bg-black/30 border-transparent text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-200">Risk Profile</label>
-                            <select
-                                value={riskProfile}
-                                onChange={(e) => setRiskProfile(e.target.value)}
-                                className="w-full bg-black/30 border-transparent rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
-                            >
-                                <option value="LOW" className="bg-panel text-white">Conservative (Low Risk)</option>
-                                <option value="MEDIUM" className="bg-panel text-white">Balanced (Medium Risk)</option>
-                                <option value="HIGH" className="bg-panel text-white">Aggressive (High Risk)</option>
-                                <option value="DEGEN" className="bg-panel text-white">Degen (Maximum Risk)</option>
-                            </select>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">LLM Provider</label>
+                                <select
+                                    value={llmProvider}
+                                    onChange={(e) => setLlmProvider(e.target.value)}
+                                    className="w-full bg-black/30 border-transparent rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                    <option value="OPENAI" className="bg-panel text-white">OpenAI (GPT-4o)</option>
+                                    <option value="GEMINI" className="bg-panel text-white">Google (Gemini 1.5)</option>
+                                    <option value="ANTHROPIC" className="bg-panel text-white">Anthropic (Claude 3.5)</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-200">Risk Profile</label>
+                                <select
+                                    value={riskProfile}
+                                    onChange={(e) => setRiskProfile(e.target.value)}
+                                    className="w-full bg-black/30 border-transparent rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                    <option value="LOW" className="bg-panel text-white">Conservative (Low Risk)</option>
+                                    <option value="MEDIUM" className="bg-panel text-white">Balanced (Medium Risk)</option>
+                                    <option value="HIGH" className="bg-panel text-white">Aggressive (High Risk)</option>
+                                    <option value="DEGEN" className="bg-panel text-white">Degen (Maximum Risk)</option>
+                                </select>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">

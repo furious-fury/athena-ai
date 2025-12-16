@@ -55,11 +55,11 @@ export const useUpdateAgent = () => {
 export const useCreateAgent = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent }: { name: string, description: string, riskProfile: string, userId: string, stopLossPercent?: number, takeProfitPercent?: number }) => {
+        mutationFn: async ({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent, llmProvider }: { name: string, description: string, riskProfile: string, userId: string, stopLossPercent?: number, takeProfitPercent?: number, llmProvider?: string }) => {
             const res = await fetch(`${API_URL}/agents`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent }),
+                body: JSON.stringify({ name, description, riskProfile, userId, stopLossPercent, takeProfitPercent, llmProvider }),
             });
             if (!res.ok) throw new Error("Failed to create agent");
             return res.json();

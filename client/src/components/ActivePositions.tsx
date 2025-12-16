@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { PnLCard } from "./PnLCard";
 
 interface ActivePositionsProps {
     userId: string | null;
@@ -162,7 +163,7 @@ export default function ActivePositions({ userId, className }: ActivePositionsPr
                                         <TableHead className="text-right">Bet</TableHead>
                                         <TableHead className="text-right">To Win</TableHead>
                                         <TableHead className="text-right">Value</TableHead>
-                                        <TableHead className="w-[80px]"></TableHead>
+                                        <TableHead className="w-[120px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -239,17 +240,27 @@ export default function ActivePositions({ userId, className }: ActivePositionsPr
 
                                                 {/* ACTIONS */}
                                                 <TableCell className="text-right pr-4 py-3 align-middle">
-                                                    <button
-                                                        onClick={() => confirmClose(pos)}
-                                                        disabled={!!closingId}
-                                                        className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        {closingId === pos.marketId ? (
-                                                            <Activity className="w-4 h-4 animate-spin" />
-                                                        ) : (
-                                                            "Sell"
-                                                        )}
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <PnLCard data={{
+                                                            marketTitle: pos.marketTitle,
+                                                            outcome: pos.outcome,
+                                                            pnl: pos.pnl || 0,
+                                                            pnlPercent: pos.percentPnl || 0,
+                                                            bought: pos.initialValue || 0,
+                                                            position: pos.exposure || 0
+                                                        }} />
+                                                        <button
+                                                            onClick={() => confirmClose(pos)}
+                                                            disabled={!!closingId}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {closingId === pos.marketId ? (
+                                                                <Activity className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                "Sell"
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         )

@@ -10,6 +10,7 @@ import {
     DialogTrigger,
     DialogDescription,
 } from "./ui/dialog";
+import { PnLCard } from "./PnLCard";
 
 interface WalletWatchProps {
     userId: string;
@@ -417,6 +418,7 @@ export function WalletWatch({ userId }: WalletWatchProps) {
                                         <th className="pb-3 text-right">Value</th>
                                         <th className="pb-3 text-right">Price</th>
                                         <th className="pb-3 text-right pr-2">PnL</th>
+                                        <th className="pb-3 text-right w-[50px]"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm">
@@ -446,6 +448,16 @@ export function WalletWatch({ userId }: WalletWatchProps) {
                                             </td>
                                             <td className={`py-3 text-right pr-2 font-mono ${p.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                                 {p.pnl >= 0 ? '+' : ''}{p.pnl.toFixed(2)}
+                                            </td>
+                                            <td className="py-3 text-right pr-2">
+                                                <PnLCard data={{
+                                                    marketTitle: p.title,
+                                                    outcome: p.outcome,
+                                                    pnl: p.pnl,
+                                                    pnlPercent: p.initialValue > 0 ? (p.pnl / p.initialValue) * 100 : 0,
+                                                    bought: p.initialValue,
+                                                    position: p.value
+                                                }} />
                                             </td>
                                         </tr>
                                     ))}

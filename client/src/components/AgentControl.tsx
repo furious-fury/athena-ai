@@ -163,9 +163,9 @@ export default function AgentControl({ dbUserId, variant = "full" }: { dbUserId:
                                     onChange={(e) => setLlmProvider(e.target.value)}
                                     className="w-full bg-black/30 border-transparent rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
                                 >
-                                    <option value="OPENAI" className="bg-panel text-white">OpenAI (GPT-4o)</option>
-                                    <option value="GEMINI" className="bg-panel text-white">Google (Gemini 1.5)</option>
-                                    <option value="ANTHROPIC" className="bg-panel text-white">Anthropic (Claude 3.5)</option>
+                                    <option value="OPENAI" className="bg-panel text-white">OpenAI - GPT</option>
+                                    <option value="GEMINI" className="bg-panel text-white">Google - Gemini</option>
+                                    <option value="ANTHROPIC" className="bg-panel text-white">Anthropic - Claude</option>
                                 </select>
                             </div>
                             <div className="space-y-2">

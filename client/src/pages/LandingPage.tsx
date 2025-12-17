@@ -73,16 +73,17 @@ function LandingPage() {
 
                     <FadeIn delay={0.35}>
                         <div
-                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 w-fit mx-auto mb-8 backdrop-blur-sm hover:bg-white/10 transition-all cursor-pointer group active:scale-95"
+                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2 w-fit max-w-[90vw] mx-auto mb-8 backdrop-blur-sm hover:bg-white/10 transition-all cursor-pointer group active:scale-95"
                             onClick={handleCopy}
                         >
-                            <span className="text-gray-400 text-sm font-medium">Official CA:</span>
-                            <span className="font-mono text-blue-400 font-bold hidden sm:inline">EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump</span>
-                            <span className="font-mono text-blue-400 font-bold sm:hidden">EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump</span>
+                            <span className="text-gray-400 text-sm font-medium shrink-0">CA:</span>
+                            <span className="font-mono text-blue-400 font-bold break-all sm:break-normal text-xs sm:text-base">
+                                EegYQPAgnNLvPLR9tsui3iY99578a5UkRuoaX6ecpump
+                            </span>
                             {copied ? (
-                                <Check className="w-4 h-4 text-green-400 transition-all scale-110" />
+                                <Check className="w-4 h-4 text-green-400 transition-all scale-110 shrink-0" />
                             ) : (
-                                <Copy className="w-4 h-4 text-gray-500 group-hover:text-white transition-all" />
+                                <Copy className="w-4 h-4 text-gray-500 group-hover:text-white transition-all shrink-0" />
                             )}
                         </div>
                     </FadeIn>

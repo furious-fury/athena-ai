@@ -157,7 +157,8 @@ export const get_positions = async (userId: string) => {
 
         const addresses: string[] = [];
         if (user.scwAddress) addresses.push(user.scwAddress);
-        if (user.walletAddress) addresses.push(user.walletAddress);
+        // User requested to ONLY check Proxy wallet, ignoring main wallet
+        // if (user.walletAddress) addresses.push(user.walletAddress);
 
         console.log(`[get_positions] Fetching for addresses: ${addresses.join(', ')}`);
 
@@ -876,34 +877,35 @@ export const close_position = async (userId: string, marketId: string, outcome: 
 
         console.log(`[CLOSE] 📉 Selling ${size} shares @ ${finalPrice} (FOK) | WS Price: ${wsPrice}`);
 
-        // 5. Place Order
-        // Get Tick Size
+        // 5. Dynamic Params Fetching
         let tickSize = "0.01";
+        let negRisk = false;
+
         try {
-            const ts = await clobClient.getTickSize(assetTokenId);
+            console.log(`[CLOSE] 🔍 Fetching dynamic params for ${assetTokenId}...`);
+            // Dynamic Fetch: Tick Size
+            // @ts-ignore
+            const ts = await clobClient.getTickSize(assetTokenId!);
             if (ts?.minimum_tick_size) {
                 tickSize = ts.minimum_tick_size.toString();
                 console.log(`[CLOSE] 📏 Fetched Tick Size: ${tickSize}`);
             }
-        } catch (e) { console.warn("[CLOSE] Failed to fetch tick size, using default 0.01"); }
 
-        // OVERRIDE: If price is sub-penny (e.g. 0.005), tick size MUST be smaller than 0.01.
-        // We defer to the market's minimum if known, otherwise we try 0.001 (0.1 cent) which is common for cheap markets.
-        // Previously we tried 0.0001 but some markets reject it if min is 0.001.
-        if (finalPrice < 0.01) {
-            console.warn(`[CLOSE] ⚠️ Price ${finalPrice} < 0.01. Forcing smaller tick size.`);
-            if (tickSize === "0.01") {
-                tickSize = "0.001";
+            // Dynamic Fetch: Neg Risk
+            const market = await clobClient.getMarket(assetTokenId!);
+            if (market && (market.negRisk || market.neg_risk)) {
+                negRisk = true;
+                console.log(`[CLOSE] ⚠️ Market is Negative Risk`);
             }
-        }
+        } catch (e) { console.warn("[CLOSE] Failed to fetch dynamic params, using defaults"); }
 
         // FIX: Round inputs to prevent "NaN" or "Decimal" errors in ClobClient
-        // Floor price to 2 decimals (standard tick) or 3 if small
-        const decimals = tickSize === "0.01" ? 2 : 3;
+        // Floor price to 2 decimals (standard tick) or matches tick size
+        const decimals = (tickSize.split('.')[1] || "00").length || 2;
         const safePrice = parseFloat(finalPrice.toFixed(decimals));
         const safeSize = parseFloat(size.toFixed(4)); // Cap decimals for safety
 
-        console.log(`[CLOSE] 🛠️ Sanitized: Price ${safePrice} (Tick ${tickSize}), Size ${safeSize}`);
+        console.log(`[CLOSE] 🛠️ Sanitized: Price ${safePrice} (Tick ${tickSize}, NegRisk ${negRisk}), Size ${safeSize}`);
 
         const order = await clobClient.createOrder({
             tokenID: assetTokenId,
@@ -912,8 +914,9 @@ export const close_position = async (userId: string, marketId: string, outcome: 
             size: safeSize.toString(),
             feeRateBps: 0,
             expiration: 0,
-            nonce: 0
-        }, { tickSize, negRisk: true });
+            nonce: 0,
+            tickSize // Pass specifically
+        }, { tickSize, negRisk: negRisk }); // Use dynamic negRisk
 
         const postResp = await clobClient.postOrder(order, "FOK"); // FOK guarantees fill or kill
         console.log(`[CLOSE] Response:`, JSON.stringify(postResp));

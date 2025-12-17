@@ -18,10 +18,22 @@ export default function GlobalActivityFeed({ userId }: GlobalActivityFeedProps) 
 
     if (isLoading) {
         return (
-            <div className="space-y-2">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
+            <div className="h-[600px] w-full rounded-md bg-panel p-4 overflow-hidden">
+                <div className="space-y-4 animate-pulse">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="flex items-start gap-4 p-3">
+                            <Skeleton className="h-8 w-8 rounded-full bg-white/5" />
+                            <div className="flex-1 space-y-2">
+                                <div className="flex justify-between">
+                                    <Skeleton className="h-5 w-24 bg-white/5" />
+                                    <Skeleton className="h-4 w-12 bg-white/5" />
+                                </div>
+                                <Skeleton className="h-4 w-full bg-white/5" />
+                                <Skeleton className="h-4 w-2/3 bg-white/5" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { app } from "./app.js";
 import { redis } from "./config/redis.js"; // your Redis client
 import { AgentWorker } from "./workers/AgentWorker.js";
+import { PortfolioTracker } from './workers/PortfolioTracker.js';
 
 import { logger } from "./config/logger.js";
 
@@ -37,6 +38,10 @@ async function startServer() {
         // 4. Start Wallet Tracker Service (Background Sync)
         const { WalletTrackerService } = await import("./services/WalletTrackerService.js");
         WalletTrackerService.startTracking();
+
+        // 5. Start Portfolio Tracker (Net Worth Snapshots)
+        const portfolioTracker = new PortfolioTracker();
+        portfolioTracker.start();
 
 
         // Start Express server

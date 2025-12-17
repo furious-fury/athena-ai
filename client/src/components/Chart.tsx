@@ -18,7 +18,16 @@ interface ChartProps {
 }
 
 function Chart({ data, className }: ChartProps) {
-    const chartData = data && data.length > 0 ? data : EMPTY_DATA;
+    let chartData = data && data.length > 0 ? data : EMPTY_DATA;
+
+    // Fix: Recharts needs >1 point to draw an Area. If only 1 point, duplicate it.
+    if (chartData.length === 1) {
+        chartData = [
+            { time: chartData[0].time, value: chartData[0].value },
+            { time: chartData[0].time, value: chartData[0].value }
+        ];
+    }
+
     const isPositive = chartData[chartData.length - 1].value >= chartData[0].value;
     const change = data && data.length > 0 ? "+0.0%" : "0.0%"; // Placeholder logic
 
@@ -63,6 +72,20 @@ function Chart({ data, className }: ChartProps) {
                                                 tickLine={false}
                                                 tick={{ fill: '#6b7280', fontSize: 10 }}
                                                 dy={10}
+                                                tickFormatter={(str) => {
+                                                    try {
+                                                        const date = new Date(str);
+                                                        // If valid date, return HH:mm
+                                                        if (!isNaN(date.getTime())) {
+                                                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                        }
+                                                        return str;
+                                                    } catch (e) {
+                                                        return str;
+                                                    }
+                                                }}
+                                                interval="preserveStartEnd"
+                                                minTickGap={30}
                                             />
                                             <YAxis
                                                 hide={true}

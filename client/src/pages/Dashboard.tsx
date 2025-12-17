@@ -17,7 +17,8 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import GlobalActivityFeed from '../components/GlobalActivityFeed';
 import DashboardStats from '../components/DashboardStats';
 import { useUserSettings, useLoginUser } from '../lib/api';
-import { Zap } from 'lucide-react';
+import { Zap, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -54,7 +55,7 @@ function Dashboard() {
     useEffect(() => {
         if (connected && publicKey) {
             setIsInitialLoad(true); // Start loading when connection detected
-            // console.log("App: Logging in user", publicKey.toBase58());
+            // console.log("App: Logging in user", publicKey.to258());
             loginUser(publicKey.toBase58()).finally(() => {
                 // Keep loading slightly longer for smoother transition or until settings fetch begins
                 // But the main blocker is getting the DB ID
@@ -148,6 +149,15 @@ function Dashboard() {
             case 'dashboard':
                 return (
                     <div className="animate-in fade-in duration-500">
+                        {/* Status Alert */}
+                        <Alert variant="warning" className="mb-6 border-yellow-500/50 bg-yellow-500/10 text-yellow-500">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Polymarket Service Update</AlertTitle>
+                            <AlertDescription>
+                                We’re currently experiencing a delay in positions appearing due to an issue with Goldsky. Your funds are safe and all trades are processing normally. Please avoid submitting duplicate orders.
+                            </AlertDescription>
+                        </Alert>
+
                         {/* Stats Overview */}
                         <div className="mb-5">
                             <h3 className="text-xl font-bold text-white -mb-4">Stats Overview</h3>

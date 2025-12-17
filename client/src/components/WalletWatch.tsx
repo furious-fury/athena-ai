@@ -447,7 +447,12 @@ export function WalletWatch({ userId }: WalletWatchProps) {
                                                 {(p.price * 100).toFixed(1)}¢
                                             </td>
                                             <td className={`py-3 text-right pr-2 font-mono ${p.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {p.pnl >= 0 ? '+' : ''}{p.pnl.toFixed(2)}
+                                                <div className="flex flex-col items-end">
+                                                    <span>{p.pnl >= 0 ? '+' : '-'}${Math.abs(p.pnl).toFixed(2)}</span>
+                                                    <span className="text-xs opacity-70">
+                                                        ({p.initialValue > 0 ? ((p.pnl / p.initialValue) * 100).toFixed(1) : '0.0'}%)
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="py-3 text-right pr-2">
                                                 <PnLCard data={{

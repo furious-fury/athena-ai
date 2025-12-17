@@ -14,25 +14,38 @@ const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
 if (proxyUrl && agent) {
     console.log(`[PROXY] 🛡️ Using Residential Proxy: ${proxyUrl.replace(/:[^:]*@/, ":***@")}`); // Log masked
-    // Patch Axios (used by ClobClient)
-    axios.defaults.httpsAgent = agent;
-    axios.defaults.proxy = false; // Disable axios's native proxy handling in favor of agent
-
     // Spoof User-Agent to look like Chrome
     const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-    // Force Override User-Agent using Interceptor (ClobClient tries to overwrite it)
-    axios.interceptors.request.use(config => {
-        // @ts-ignore
-        config.headers['User-Agent'] = CHROME_UA; // Desktop Chrome
-        // @ts-ignore
-        config.headers['sec-ch-ua'] = '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"';
-        // @ts-ignore
-        config.headers['sec-ch-ua-mobile'] = '?0';
-        // @ts-ignore
-        config.headers['sec-ch-ua-platform'] = '"Windows"';
-        return config;
-    });
+    const applyInterceptors = (instance: any) => {
+        instance.interceptors.request.use((config: any) => {
+            config.headers['User-Agent'] = CHROME_UA;
+            config.headers['sec-ch-ua'] = '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"';
+            config.headers['sec-ch-ua-mobile'] = '?0';
+            config.headers['sec-ch-ua-platform'] = '"Windows"';
+            return config;
+        });
+    };
+
+    // 1. Configure Global Defaults
+    axios.defaults.httpsAgent = agent;
+    axios.defaults.proxy = false;
+    applyInterceptors(axios);
+
+    // 2. Monkey Patch axios.create to catch libraries (like ClobClient) creating their own instances
+    const originalCreate = axios.create;
+    axios.create = function (config) {
+        const newConfig = { ...config };
+        // Force agent on new instances
+        newConfig.httpsAgent = agent;
+        newConfig.proxy = false;
+
+        const instance = originalCreate.call(this, newConfig);
+        applyInterceptors(instance);
+        return instance;
+    };
+
+    console.log("[PROXY] 🛡️ Axios patched globally for User-Agent spoofing and Proxy support.");
 }
 
 // Export TradeParams as expected by other files
@@ -132,6 +145,7 @@ export const get_active_events = async (limit: number = 20) => {
  * Fetches user positions from Gamma API (Real-time)
  */
 // Update to Data API as requested
+// Update to Data API as requested
 export const get_positions = async (userId: string) => {
     try {
         const user = await prisma.user.findUnique({
@@ -141,18 +155,43 @@ export const get_positions = async (userId: string) => {
 
         if (!user) return [];
 
-        // Prefer Proxy (scwAddress), fallback to EOA (walletAddress)
-        const targetAddress = user.scwAddress || user.walletAddress;
+        const addresses: string[] = [];
+        if (user.scwAddress) addresses.push(user.scwAddress);
+        if (user.walletAddress) addresses.push(user.walletAddress);
 
-        // Fetch from Data API (as requested by user)
-        const DATA_API_URL = "https://data-api.polymarket.com/positions";
-        const url = `${DATA_API_URL}?user=${targetAddress}&sizeThreshold=0.1&limit=100&sortBy=TOKENS&sortDirection=DESC`;
+        console.log(`[get_positions] Fetching for addresses: ${addresses.join(', ')}`);
 
-        const response = await fetch(url, { agent });
-        if (!response.ok) return [];
+        const fetchForAddress = async (addr: string) => {
+            try {
+                // Fetch from Data API (as requested by user)
+                const DATA_API_URL = "https://data-api.polymarket.com/positions";
+                const url = `${DATA_API_URL}?user=${addr}&sizeThreshold=0.1&limit=100&sortBy=TOKENS&sortDirection=DESC`;
 
-        const data: any = await response.json();
-        return Array.isArray(data) ? data : [];
+                const response = await fetch(url, { agent });
+                if (!response.ok) {
+                    console.warn(`[get_positions] Failed for ${addr}: ${response.status}`);
+                    return [];
+                }
+                const data: any = await response.json();
+                return Array.isArray(data) ? data : [];
+            } catch (e) {
+                console.error(`[get_positions] Error for ${addr}:`, e);
+                return [];
+            }
+        };
+
+        const results = await Promise.all(addresses.map(fetchForAddress));
+        const allPositions = results.flat();
+
+        // Deduplicate by asset/conditionId if necessary (though EOA/Proxy hold separate tokens, so technically distinct positions)
+        // But for display, maybe we list them?
+        // Actually, they refer to the same Market, but different holdings. 
+        // Let's return them all, but maybe tag them?
+        // For now, flat list is fine.
+
+        console.log(`[get_positions] Found ${allPositions.length} total positions.`);
+        return allPositions;
+
     } catch (error) {
         console.error("get_positions error:", error);
         return [];
@@ -442,7 +481,7 @@ export const place_trade = async (trade: TradeParams) => {
 
             await prisma.user.update({
                 where: { id: user.id },
-                data: { apiKey: keys.key, apiSecret: keys.secret, apiPassphrase: keys.passphrase }
+                data: { apiKey: keys.key, apiSecret: keys.secret, apiPassphrase: keys.passphras }
             });
             user.apiKey = keys.key;
             user.apiSecret = keys.secret;
@@ -459,7 +498,7 @@ export const place_trade = async (trade: TradeParams) => {
                 secret: user.apiSecret || "",
                 passphrase: user.apiPassphrase || ""
             },
-            useProxy ? 2 : 0, // 2 for Proxy (Match test-buy.js)
+            useProxy ? 2 : 0, // 2 for Proxy
             useProxy ? proxyAddress || undefined : undefined
         );
 
@@ -546,14 +585,29 @@ export const place_trade = async (trade: TradeParams) => {
 
         console.log(`[TRADE] 🚀 Placing ${orderType} ${side} Order: ${quantity} shares @ ${finalPrice}`);
 
-        // 4. Execute
-        // Get Tick Size
+        // 4. Dynamic Params Fetching
         let tickSize = "0.01";
+        let negRisk = false; // Default false
+
         try {
+            console.log(`[TRADE] 🔍 Fetching dynamic params for ${assetTokenId}...`);
+            // Dynamic Fetch: Tick Size
             // @ts-ignore
             const ts = await clobClient.getTickSize(assetTokenId!);
-            if (ts?.minimum_tick_size) tickSize = ts.minimum_tick_size.toString();
-        } catch (e) { }
+            if (ts?.minimum_tick_size) {
+                tickSize = ts.minimum_tick_size.toString();
+            } else if (typeof ts === 'string') { // Handle string return if simple type
+                tickSize = ts;
+            }
+
+            // Dynamic Fetch: Neg Risk
+            // @ts-ignore
+            negRisk = await clobClient.getNegRisk(assetTokenId!);
+
+            console.log(`[TRADE] ✅ Params fetched: TickSize=${tickSize}, NegRisk=${negRisk}`);
+        } catch (e: any) {
+            console.warn(`[TRADE] ⚠️ Failed to fetch dynamic params: ${e.message}. Using defaults.`);
+        }
 
         const order = await clobClient.createOrder({
             tokenID: assetTokenId!,
@@ -563,7 +617,7 @@ export const place_trade = async (trade: TradeParams) => {
             feeRateBps: 0,
             expiration: 0,
             nonce: 0
-        }, { tickSize, negRisk: true }); // Always assume negRisk true for safety on mainnet markets (most are)
+        }, { tickSize, negRisk }); // Use dynamic negRisk
 
         console.log(`[TRADE] 📝 Signing Order:`, JSON.stringify(order));
         console.log(`[TRADE] 📝 Clob Config: ChainId=137, SigType=${useProxy ? 2 : 0}, Proxy=${proxyAddress}`);
